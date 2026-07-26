@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Frame by Frame - Motion Analysis</title>
+<style>
+  :root{
+    --navy:#1B2450;
+    --teal:#1DB793;
+    --ink:#191919;
+    --muted:#747474;
+    --rule:#D0D0D0;
+    --shell:#E8E8E8;
+    --card:#FAFAFA;
+    --white:#FFFFFF;
+    --ui: Arial, Helvetica, sans-serif;
+    --data: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--shell);
+    color:var(--ink);
+    font-family:var(--ui);
+    font-size:15px;
+    line-height:1.5;
+  }
+  a{color:var(--navy)}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 20px 64px}
+
+  /* Masthead */
+  header.mast{
+    background:var(--navy);
+    color:var(--white);
+    border-bottom:4px solid var(--teal);
+  }
+  .mast-in{max-width:1180px;margin:0 auto;padding:20px;display:flex;flex-wrap:wrap;gap:16px;align-items:baseline;justify-content:space-between}
+  .mast h1{font-size:24px;margin:0;letter-spacing:.01em}
+  .mast .sub{font-size:12px;color:#BFC6DE;letter-spacing:.14em;text-transform:uppercase}
+  .privacy{
+    font-family:var(--data);font-size:11px;color:var(--navy);
+    background:var(--teal);padding:5px 9px;border-radius:2px;
+  }
+
+  /* Step rail: sticky navigation */
+  .rail{
+    position:sticky; top:0; z-index:30;
+    display:flex; gap:0; margin:0 0 18px;
+    border:1px solid var(--rule); border-bottom:2px solid var(--teal);
+    background:var(--white); overflow-x:auto; -webkit-overflow-scrolling:touch;
+  }
+  .rail button.step{
+    flex:1 1 auto; padding:11px 12px; margin:0;
+    border:none; border-right:1px solid var(--rule); border-radius:0;
+    background:var(--white); font-family:var(--ui); font-size:13px; text-align:left;
+    display:flex; gap:9px; align-items:center; white-space:nowrap; cursor:pointer;
+  }
+  .rail button.step:last-child{border-right:none}
+  .rail button.step:hover{background:var(--card); color:var(--navy)}
+  .step .num{
+    font-family:var(--data);font-size:12px;width:22px;height:22px;flex:none;
+    display:grid;place-items:center;border:1px solid var(--rule);color:var(--muted);border-radius:2px;
+  }
+  .step .lbl{font-size:13px;color:var(--muted)}
+  .step.done .num{background:var(--teal);border-color:var(--teal);color:var(--navy)}
+  .step.done .lbl{color:var(--ink)}
+  .step.active{background:var(--card)}
+  .step.active .num{border-color:var(--navy);color:var(--navy)}
+  .step.active .lbl{color:var(--navy);font-weight:bold}
+  .step.jump .lbl{color:var(--navy)}
+
+  .cols{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:20px}
+  .panel{scroll-margin-top:62px}
+  @media (max-width:900px){
+    /* single column, panels in the order they are actually used */
+    .cols{display:flex;flex-direction:column;gap:20px}
+    .cols > div{display:contents}
+    .p-clip{order:1}
+    .p-scale{order:2}
+    .p-marking{order:3}
+    .p-numbers{order:4}
+    .p-results{order:5}
+    .panel + .panel{margin-top:0}
+  }
+
+  .panel{background:var(--white);border:1px solid var(--rule)}
+  .panel > h2{
+    margin:0;padding:9px 14px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--white);background:var(--navy);font-weight:bold;
+  }
+  .panel .body{padding:14px}
+  .panel + .panel{margin-top:20px}
+
+  /* Video stage */
+  .stage{position:relative;background:var(--navy);border-bottom:1px solid var(--rule)}
+  canvas#frame{display:block;width:100%;height:auto;cursor:crosshair;background:var(--navy)}
+  canvas#frame.idle{cursor:default}
+  .loupe-wrap{
+    position:absolute;top:10px;right:10px;width:156px;
+    background:var(--white);border:1px solid var(--navy);display:none;
+  }
+  .loupe-wrap.on{display:block}
+  canvas#loupe{display:block;width:154px;height:154px}
+  .loupe-wrap .cap{font-family:var(--data);font-size:10px;color:var(--muted);padding:2px 5px;border-top:1px solid var(--rule)}
+
+  .transport{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--rule);background:var(--card)}
+  .clock{font-family:var(--data);font-size:13px;color:var(--navy);margin-left:auto;white-space:nowrap}
+  input[type=range]{flex:1 1 160px;min-width:120px;accent-color:var(--teal)}
+
+  button{
+    font-family:var(--ui);font-size:13px;padding:7px 11px;
+    background:var(--white);color:var(--navy);border:1px solid var(--navy);border-radius:2px;cursor:pointer;
+  }
+  button:hover:not(:disabled){background:var(--navy);color:var(--white)}
+  button:disabled{border-color:var(--rule);color:var(--rule);cursor:not-allowed;background:var(--white)}
+  button.primary{background:var(--teal);border-color:var(--teal);color:var(--navy);font-weight:bold}
+  button.primary:hover:not(:disabled){background:var(--navy);border-color:var(--navy);color:var(--white)}
+  button.quiet{border-color:var(--rule);color:var(--muted)}
+  button.quiet:hover:not(:disabled){background:var(--muted);border-color:var(--muted);color:var(--white)}
+  button:focus-visible, input:focus-visible, select:focus-visible, label.file:focus-within{
+    outline:3px solid var(--teal);outline-offset:2px;
+  }
+
+  .field{display:flex;gap:8px;align-items:center;margin:0 0 10px}
+  .field label{font-size:13px;color:var(--muted);flex:0 0 auto}
+  input[type=text],input[type=number],select{
+    font-family:var(--data);font-size:13px;padding:6px 7px;border:1px solid var(--rule);border-radius:2px;
+    background:var(--white);color:var(--ink);min-width:0;
+  }
+  input[type=number]{width:88px}
+  label.file{
+    display:inline-block;background:var(--teal);color:var(--navy);font-weight:bold;font-size:13px;
+    padding:8px 12px;border:1px solid var(--teal);border-radius:2px;cursor:pointer;
+  }
+  label.file input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+
+  .note{font-size:13px;color:var(--muted);margin:8px 0 0}
+  .hint{
+    font-size:13px;color:var(--navy);background:var(--card);
+    border-left:3px solid var(--teal);padding:9px 11px;margin:0 0 12px;
+  }
+  .alert{
+    font-size:13px;color:var(--navy);background:var(--white);
+    border:1px solid var(--navy);border-left:4px solid var(--navy);padding:10px 12px;margin:0 0 12px;display:none;
+  }
+  .alert.on{display:block}
+  .alert b{display:block;margin-bottom:4px}
+
+  .pairrow{display:flex;gap:8px;align-items:center;margin:0 0 12px;font-size:13px}
+  .pairrow input{width:16px;height:16px;accent-color:var(--teal);flex:none}
+  .pairrow label{color:var(--ink);cursor:pointer}
+
+  .trackpick{display:flex;gap:0;border:1px solid var(--rule);margin:0 0 12px}
+  .trackpick button{flex:1;border:none;border-radius:0;border-right:1px solid var(--rule);text-align:left;padding:9px 11px}
+  .trackpick button:last-child{border-right:none}
+  .trackpick button.on{background:var(--navy);color:var(--white)}
+  .trackpick .tally{font-family:var(--data);font-size:11px;display:block;opacity:.8}
+
+  /* Readouts */
+  .readout{border:1px solid var(--rule);margin:0 0 10px}
+  .readout .rlbl{
+    font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+    padding:7px 11px 0;
+  }
+  .readout .rval{font-family:var(--data);font-size:22px;color:var(--navy);padding:1px 11px 2px}
+  .readout .rval small{font-size:13px;color:var(--muted)}
+  .readout .rfoot{font-size:12px;color:var(--muted);padding:0 11px 8px}
+  .readout.key{border-color:var(--navy);border-left-width:4px}
+  .readout.key .rval{font-size:26px}
+
+  table{width:100%;border-collapse:collapse;font-family:var(--data);font-size:12px}
+  th,td{padding:5px 7px;border-bottom:1px solid var(--rule);text-align:right;white-space:nowrap}
+  th{color:var(--muted);font-weight:normal;text-align:right;border-bottom:1px solid var(--navy)}
+  th:first-child,td:first-child{text-align:left}
+  tbody tr:hover{background:var(--card)}
+  td.flag{color:var(--navy);font-weight:bold}
+  .tablescroll{max-height:290px;overflow:auto;border:1px solid var(--rule)}
+
+  .graphs{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media (max-width:760px){.graphs{grid-template-columns:1fr}}
+  .graph h3{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 6px;font-weight:normal}
+  .graph canvas{display:block;width:100%;height:auto;border:1px solid var(--rule);background:var(--white)}
+  .graph .cap{font-size:12px;color:var(--muted);margin:6px 0 0}
+
+  .btnrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  footer.foot{border-top:1px solid var(--rule);margin-top:28px;padding-top:14px;font-size:12px;color:var(--muted)}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header class="mast">
+  <div class="mast-in">
+    <div>
+      <div class="sub">Honors Physics &middot; Khan World School</div>
+      <h1>Frame by Frame</h1>
+    </div>
+    <div class="privacy">Runs on your device. Nothing is uploaded.</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="rail" id="rail">
+    <button class="step active" data-step="1" data-go="clip"><span class="num">1</span><span class="lbl">Load your clip</span></button>
+    <button class="step" data-step="2" data-go="scale"><span class="num">2</span><span class="lbl">Set the scale</span></button>
+    <button class="step" data-step="3" data-go="mark"><span class="num">3</span><span class="lbl">Mark the motion</span></button>
+    <button class="step jump" data-go="results"><span class="lbl">Results</span></button>
+  </div>
+
+  <div class="cols">
+
+    <!-- LEFT -->
+    <div>
+      <div class="panel p-clip" id="panel-clip">
+        <h2>Clip</h2>
+        <div class="stage">
+          <canvas id="frame" width="960" height="540" class="idle"></canvas>
+          <div class="loupe-wrap" id="loupeWrap">
+            <canvas id="loupe" width="308" height="308"></canvas>
+            <div class="cap">4x zoom</div>
+          </div>
+        </div>
+        <div class="transport">
+          <button id="btnPlay" disabled>Play</button>
+          <button id="btnPrev" disabled>&lsaquo; Frame</button>
+          <button id="btnNext" disabled>Frame &rsaquo;</button>
+          <input type="range" id="scrub" min="0" max="1000" value="0" step="1" disabled aria-label="Scrub through the clip">
+          <span class="clock" id="clock">0.000 s</span>
+        </div>
+        <div class="body">
+          <div class="alert" id="alert"></div>
+          <div class="field">
+            <label class="file" tabindex="0">Choose a video file<input type="file" id="file" accept="video/*"></label>
+            <span class="note" id="fileName" style="margin:0">No clip loaded</span>
+          </div>
+          <div class="field">
+            <label for="fps">Frames per second</label>
+            <input type="number" id="fps" value="60" min="1" max="480" step="1">
+            <span class="note" id="fpsNote" style="margin:0">Sets the step size only. Times come from the clip itself.</span>
+          </div>
+          <div class="readout" id="clipInfoBox" style="display:none;margin:0 0 10px">
+            <div class="rlbl">This clip</div>
+            <div class="rval" id="clipCodec" style="font-size:16px">&mdash;</div>
+            <div class="rfoot" id="clipFoot"></div>
+          </div>
+          <p class="note">Arrow keys step one frame. Comma and period work too.</p>
+          <div class="hint" style="margin:12px 0 0">
+            This tool measures motion in the plane of the video. It is right only when the whole motion stays the same
+            distance from the camera. Set the camera square to the path, keep the path parallel to the camera, film in
+            landscape, and do not move or zoom the camera once recording starts. Motion toward or away from the camera
+            reads as smaller than it is, and no amount of careful clicking recovers it.
+          </div>
+        </div>
+      </div>
+
+      <div class="panel p-results" id="panel-results">
+        <h2>Results</h2>
+        <div class="body">
+          <div class="graphs">
+            <div class="graph">
+              <h3>Sideways position against time</h3>
+              <canvas id="gx" width="620" height="420"></canvas>
+              <p class="cap">A straight line means steady sideways motion. The slope is the sideways velocity.</p>
+            </div>
+            <div class="graph">
+              <h3>Height against time</h3>
+              <canvas id="gy" width="620" height="420"></canvas>
+              <p class="cap">A curve means the up and down motion is changing. The curvature gives the acceleration.</p>
+            </div>
+          </div>
+          <div class="graphs" style="margin-top:16px">
+            <div class="graph">
+              <h3>Velocity, two ways</h3>
+              <canvas id="gv" width="620" height="420"></canvas>
+              <p class="cap">Dots come from subtracting neighbouring marks. The line comes from the curve fit. Compare how scattered the dots are.</p>
+            </div>
+            <div class="graph">
+              <h3>Marked points</h3>
+              <div class="tablescroll">
+                <table id="tbl">
+                  <thead><tr><th>Track</th><th>t (s)</th><th>x (m)</th><th>y (m)</th></tr></thead>
+                  <tbody><tr><td colspan="4" style="color:var(--muted)">No points yet</td></tr></tbody>
+                </table>
+              </div>
+              <p class="cap">Positions are measured from your first marked point, so both start at zero. Height counts upward.</p>
+            </div>
+          </div>
+          <div class="btnrow">
+            <button id="btnCsv" disabled>Download data as CSV</button>
+            <button id="btnClear" class="quiet" disabled>Clear all points</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div>
+      <div class="panel p-scale" id="panel-scale">
+        <h2>Step 2 &middot; Scale</h2>
+        <div class="body">
+          <div class="hint" id="scaleHint">Click the two ends of your measuring stick in the frame, then type its real length.</div>
+          <p class="note" style="margin:0 0 10px">Put the measuring stick in the same plane as the motion, the same distance
+          from the camera as the thing you are marking. A stick nearer or further than the path scales every later
+          measurement wrongly.</p>
+          <div class="field">
+            <label for="scaleLen">Real length</label>
+            <input type="number" id="scaleLen" value="1.000" min="0.001" step="0.001">
+            <span class="note" style="margin:0">metres</span>
+          </div>
+          <div class="btnrow" style="margin:0">
+            <button id="btnScale" disabled>Set the scale</button>
+            <button id="btnScaleClear" class="quiet" disabled>Clear</button>
+          </div>
+          <div class="readout" style="margin-top:12px">
+            <div class="rlbl">Pixels per metre</div>
+            <div class="rval" id="pxpm">&mdash;</div>
+            <div class="rfoot" id="pxpmFoot">Not set</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel p-marking" id="panel-marking">
+        <h2>Step 3 &middot; Marking</h2>
+        <div class="body">
+          <div class="pairrow">
+            <input type="checkbox" id="paired" checked>
+            <label for="paired">Mark the object, then the carrier, on each frame</label>
+          </div>
+          <div class="trackpick" id="trackpick">
+            <button data-track="object" class="on">Object<span class="tally" id="tallyObject">0 points</span></button>
+            <button data-track="carrier">Carrier<span class="tally" id="tallyCarrier">0 points</span></button>
+          </div>
+          <div class="hint" id="markHint">Set the scale first, then click the object once on each frame.</div>
+          <div class="btnrow" style="margin:0">
+            <button id="btnDelPoint" class="quiet" disabled>Delete last point</button>
+            <button id="btnRelease" disabled>Mark release frame</button>
+          </div>
+          <p class="note">One click makes one point, and the view steps forward a frame on its own. If you miss, delete the point and click again.</p>
+          <div class="readout" style="margin:12px 0 0">
+            <div class="rlbl">Release frame</div>
+            <div class="rval" id="relVal" style="font-size:16px">not marked</div>
+            <div class="rfoot" id="relFoot">Step to the frame where your hand opens and mark it. Sideways velocity keeps using every point. Acceleration uses only what happens after release.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel p-numbers" id="panel-numbers">
+        <h2>Numbers</h2>
+        <div class="body">
+          <div class="readout key">
+            <div class="rlbl">Object, sideways velocity</div>
+            <div class="rval" id="voObj">&mdash;</div>
+            <div class="rfoot" id="voObjFoot">Needs 3 or more object points</div>
+          </div>
+          <div class="readout key">
+            <div class="rlbl">Carrier, sideways velocity</div>
+            <div class="rval" id="voCar">&mdash;</div>
+            <div class="rfoot" id="voCarFoot">Needs 3 or more carrier points</div>
+          </div>
+          <div class="readout key">
+            <div class="rlbl">Object velocity minus carrier velocity</div>
+            <div class="rval" id="vdiff">&mdash;</div>
+            <div class="rfoot" id="vdiffFoot">Both tracks needed</div>
+          </div>
+          <div class="readout">
+            <div class="rlbl">Up and down acceleration</div>
+            <div class="rval" id="accel">&mdash;</div>
+            <div class="rfoot" id="accelFoot">Needs 4 or more object points</div>
+          </div>
+          <div class="readout">
+            <div class="rlbl">Sideways acceleration</div>
+            <div class="rval" id="accelX">&mdash;</div>
+            <div class="rfoot" id="accelXFoot">Needs 4 or more object points</div>
+          </div>
+          <div class="field" style="margin:14px 0 0">
+            <label for="who">Name</label>
+            <input type="text" id="who" placeholder="initials" style="width:110px">
+          </div>
+          <div class="field" style="margin:0">
+            <label for="trial">Trial</label>
+            <input type="text" id="trial" placeholder="e.g. jog 3" style="width:110px">
+          </div>
+          <p class="note">Both appear in the CSV so pooled class data stays sorted.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="foot">
+    Frame by Frame, prototype. Your clip is read straight from the disk into this page and is never sent anywhere.
+    Times are taken from the clip's own clock rather than assumed from a frame count.
+    One camera measures motion in one plane, so every number here assumes the motion stayed square to the lens
+    at a fixed distance from it.
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- element handles ----------
+  var video   = document.createElement('video');
+  video.muted = true; video.playsInline = true; video.preload = 'auto';
+
+  var cv      = document.getElementById('frame');
+  var ctx     = cv.getContext('2d');
+  var loupe   = document.getElementById('loupe');
+  var lctx    = loupe.getContext('2d');
+  var loupeWrap = document.getElementById('loupeWrap');
+
+  var fileIn  = document.getElementById('file');
+  var fileName= document.getElementById('fileName');
+  var fpsIn   = document.getElementById('fps');
+  var alertBox= document.getElementById('alert');
+  var clipInfoBox = document.getElementById('clipInfoBox');
+  var clipCodec   = document.getElementById('clipCodec');
+  var clipFoot    = document.getElementById('clipFoot');
+
+  var btnPlay = document.getElementById('btnPlay');
+  var btnPrev = document.getElementById('btnPrev');
+  var btnNext = document.getElementById('btnNext');
+  var scrub   = document.getElementById('scrub');
+  var clock   = document.getElementById('clock');
+
+  var btnScale= document.getElementById('btnScale');
+  var btnScaleClear = document.getElementById('btnScaleClear');
+  var scaleLen= document.getElementById('scaleLen');
+  var scaleHint = document.getElementById('scaleHint');
+  var pxpm    = document.getElementById('pxpm');
+  var pxpmFoot= document.getElementById('pxpmFoot');
+
+  var trackpick = document.getElementById('trackpick');
+  var markHint  = document.getElementById('markHint');
+  var paired    = document.getElementById('paired');
+  var btnDelPoint  = document.getElementById('btnDelPoint');
+  var btnRelease   = document.getElementById('btnRelease');
+  var relVal       = document.getElementById('relVal');
+  var relFoot      = document.getElementById('relFoot');
+  var tallyObject  = document.getElementById('tallyObject');
+  var tallyCarrier = document.getElementById('tallyCarrier');
+
+  var btnCsv  = document.getElementById('btnCsv');
+  var btnClear= document.getElementById('btnClear');
+  var tblBody = document.querySelector('#tbl tbody');
+  var rail    = document.getElementById('rail');
+
+  // ---------- state ----------
+  var S = {
+    loaded:false,
+    mode:'idle',          // idle | scale | mark
+    track:'object',
+    scalePts:[],          // up to 2 {x,y} in video pixels
+    pxPerMetre:null,
+    marks:{object:[], carrier:[]},
+    release:null,         // absolute clip time of the frame where the hand opens
+    t:0,
+    hover:null,
+    rvfcPending:false,
+    playing:false
+  };
+
+  var hasRVFC = typeof video.requestVideoFrameCallback === 'function';
+
+  // ---------- small helpers ----------
+  function fmt(v, d){ if(v===null||v===undefined||!isFinite(v)) return '\u2014'; return v.toFixed(d===undefined?3:d); }
+  function say(title, msg){
+    alertBox.innerHTML = '<b>'+title+'</b>'+msg;
+    alertBox.classList.add('on');
+  }
+  function clearSay(){ alertBox.classList.remove('on'); alertBox.innerHTML=''; }
+
+  function setStep(n){
+    var steps = rail.querySelectorAll('.step');
+    for(var i=0;i<steps.length;i++){
+      var k = i+1;
+      steps[i].classList.toggle('done', k < n);
+      steps[i].classList.toggle('active', k === n);
+    }
+  }
+  function refreshStep(){
+    if(!S.loaded){ setStep(1); return; }
+    if(!S.pxPerMetre){ setStep(2); return; }
+    setStep(3);
+  }
+
+  // ---------- rail as navigation ----------
+  var wantsCalm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function goTo(id){
+    var el = document.getElementById(id);
+    if(el) el.scrollIntoView({ behavior: wantsCalm ? 'auto' : 'smooth', block: 'start' });
+  }
+
+  rail.addEventListener('click', function(e){
+    var b = e.target.closest('.step'); if(!b) return;
+    var go = b.getAttribute('data-go');
+
+    if(go === 'clip'){
+      goTo('panel-clip');
+      fileIn.click();                       // opens the picker straight away
+      return;
+    }
+    if(go === 'scale'){
+      goTo('panel-scale');
+      if(!S.loaded){ say('No clip yet.', 'Choose a video file first, then come back and set the scale.'); return; }
+      S.scalePts = []; S.mode = 'scale';    // ready for two fresh clicks, marks untouched
+      clearSay(); draw(); updateAll();
+      return;
+    }
+    if(go === 'mark'){
+      goTo('panel-marking');
+      if(!S.loaded){ say('No clip yet.', 'Choose a video file first.'); return; }
+      if(!S.pxPerMetre){ say('Scale first.', 'Set the scale before marking, otherwise the positions have no units.'); return; }
+      S.mode = 'mark'; clearSay(); draw(); updateAll();
+      return;
+    }
+    if(go === 'results'){ goTo('panel-results'); }
+  });
+
+  // ---------- container sniffing ----------
+  // Reads the clip's own MP4 headers to name the codec, the true frame rate, and any
+  // recorded rotation, so a clip that cannot decode says why before any effort is spent.
+  var CODEC_INFO = {
+    avc1:['H.264','video/mp4; codecs="avc1.42E01E"'],
+    avc3:['H.264','video/mp4; codecs="avc1.42E01E"'],
+    hvc1:['HEVC, also called H.265','video/mp4; codecs="hvc1.1.6.L93.B0"'],
+    hev1:['HEVC, also called H.265','video/mp4; codecs="hev1.1.6.L93.B0"'],
+    av01:['AV1','video/mp4; codecs="av01.0.05M.08"'],
+    vp09:['VP9','video/mp4; codecs="vp09.00.10.08"'],
+    mp4v:['MPEG-4 Visual','video/mp4; codecs="mp4v.20.8"']
+  };
+
+  function fourcc(dv,p){
+    return String.fromCharCode(dv.getUint8(p),dv.getUint8(p+1),dv.getUint8(p+2),dv.getUint8(p+3));
+  }
+
+  function childBoxes(dv, start, end){
+    var out=[], pos=start;
+    while(pos + 8 <= end){
+      var size = dv.getUint32(pos), type = fourcc(dv,pos+4), hdr = 8;
+      if(size === 1){
+        if(pos + 16 > end) break;
+        size = dv.getUint32(pos+8) * 4294967296 + dv.getUint32(pos+12); hdr = 16;
+      }else if(size === 0){ size = end - pos; }
+      if(size < 8) break;
+      out.push({ type:type, start:pos+hdr, end:Math.min(end, pos+size) });
+      pos += size;
+    }
+    return out;
+  }
+
+  function pick(list, t){
+    for(var i=0;i<list.length;i++) if(list[i].type === t) return list[i];
+    return null;
+  }
+
+  function readChunk(file, start, len){
+    return file.slice(start, Math.min(file.size, start+len)).arrayBuffer();
+  }
+
+  // walks only the top level box chain, so this stays cheap on a large file
+  function findMoov(file, pos, guard){
+    pos = pos || 0; guard = guard || 0;
+    if(pos >= file.size || guard > 500) return Promise.resolve(null);
+    return readChunk(file, pos, 16).then(function(buf){
+      if(buf.byteLength < 8) return null;
+      var dv = new DataView(buf);
+      var size = dv.getUint32(0), type = fourcc(dv,4), hdr = 8;
+      if(size === 1 && buf.byteLength >= 16){
+        size = dv.getUint32(8) * 4294967296 + dv.getUint32(12); hdr = 16;
+      }else if(size === 0){ size = file.size - pos; }
+      if(size < 8) return null;
+      if(type === 'moov'){
+        return readChunk(file, pos + hdr, size - hdr).then(function(mv){ return new DataView(mv); });
+      }
+      return findMoov(file, pos + size, guard + 1);
+    });
+  }
+
+  function readVideoTrack(dv){
+    var out = { codec:null, width:0, height:0, rotation:0, fps:null };
+    var top = childBoxes(dv, 0, dv.byteLength);
+    for(var i=0;i<top.length;i++){
+      if(top[i].type !== 'trak') continue;
+      var tb = childBoxes(dv, top[i].start, top[i].end);
+      var mdia = pick(tb,'mdia'); if(!mdia) continue;
+      var mb = childBoxes(dv, mdia.start, mdia.end);
+      var hdlr = pick(mb,'hdlr');
+      if(!hdlr || fourcc(dv, hdlr.start + 8) !== 'vide') continue;   // audio and data tracks skipped
+
+      var mdhd = pick(mb,'mdhd'), timescale = null;
+      if(mdhd){
+        var mver = dv.getUint8(mdhd.start);
+        timescale = dv.getUint32(mdhd.start + (mver === 1 ? 20 : 12));
+      }
+      var minf = pick(mb,'minf'); if(!minf) continue;
+      var stbl = pick(childBoxes(dv, minf.start, minf.end), 'stbl'); if(!stbl) continue;
+      var sb = childBoxes(dv, stbl.start, stbl.end);
+
+      var stsd = pick(sb,'stsd');
+      if(stsd){
+        var entry = stsd.start + 8;                 // version and flags, then entry count
+        out.codec  = fourcc(dv, entry + 4);
+        out.width  = dv.getUint16(entry + 32);
+        out.height = dv.getUint16(entry + 34);
+      }
+      var stts = pick(sb,'stts');
+      if(stts && timescale){
+        if(dv.getUint32(stts.start + 4) > 0){
+          var delta = dv.getUint32(stts.start + 12);
+          if(delta > 0) out.fps = timescale / delta;
+        }
+      }
+      var tkhd = pick(tb,'tkhd');
+      if(tkhd){
+        var tver = dv.getUint8(tkhd.start);
+        var mo = tkhd.start + (tver === 1 ? 52 : 40);   // display matrix
+        var a = dv.getInt32(mo) / 65536, b = dv.getInt32(mo + 4) / 65536;
+        var deg = Math.round(Math.atan2(b, a) * 180 / Math.PI);
+        out.rotation = ((deg % 360) + 360) % 360;
+      }
+      return out;
+    }
+    return out;
+  }
+
+  function describeClip(file){
+    clipInfoBox.style.display = 'none';
+    findMoov(file).then(function(moov){
+      if(!moov) return;                       // not an MP4 or MOV, let the loader decide
+      var info = readVideoTrack(moov);
+      if(!info.codec) return;
+      var known = CODEC_INFO[info.codec];
+      var name  = known ? known[0] : info.codec;
+      var playable = known ? video.canPlayType(known[1]) : '';
+
+      var bits = [];
+      if(info.width && info.height) bits.push(info.width + ' by ' + info.height);
+      if(info.fps) bits.push(fmt(info.fps, info.fps % 1 ? 2 : 0) + ' frames per second');
+      if(info.rotation) bits.push('recorded rotated ' + info.rotation + ' degrees');
+
+      clipInfoBox.style.display = '';
+      clipCodec.textContent = name + (playable ? '' : ', which this browser cannot decode');
+      clipFoot.textContent = bits.length ? bits.join(', ') + '.' : '';
+
+      if(info.fps){
+        fpsIn.value = Math.round(info.fps * 100) / 100;
+        document.getElementById('fpsNote').textContent =
+          'Read from the clip, so you do not have to guess.';
+      }
+      if(!playable && !S.loaded){
+        if(loadWatch){ clearTimeout(loadWatch); loadWatch = null; }
+        say('This clip is ' + name + ', and this browser will not decode it.', decodeHelp());
+      }
+    }).catch(function(){ /* sniffing is a convenience and never blocks loading */ });
+  }
+
+  // ---------- video loading ----------
+  var loadWatch = null;
+  fileIn.addEventListener('change', function(){
+    var f = fileIn.files && fileIn.files[0];
+    if(!f) return;
+    clearSay();
+    fileName.textContent = f.name;
+    if(video.src) URL.revokeObjectURL(video.src);
+    S.loaded = false;
+    video.src = URL.createObjectURL(f);
+    video.load();
+    describeClip(f);
+    if(loadWatch) clearTimeout(loadWatch);
+    loadWatch = setTimeout(function(){
+      if(!S.loaded) say('That clip did not decode in this browser.', decodeHelp());
+    }, 4000);
+  });
+
+  video.addEventListener('loadedmetadata', function(){
+    if(loadWatch){ clearTimeout(loadWatch); loadWatch = null; }
+    if(!video.videoWidth){
+      say('This clip did not decode.', decodeHelp());
+      return;
+    }
+    cv.width  = video.videoWidth;
+    cv.height = video.videoHeight;
+    loupe.width = 308; loupe.height = 308;
+    S.loaded = true;
+    S.mode = 'scale';
+    S.scalePts = []; S.pxPerMetre = null;
+    S.marks = {object:[], carrier:[]};
+    S.release = null;
+    cv.classList.remove('idle');
+    [btnPlay,btnPrev,btnNext,scrub,btnScale,btnScaleClear,btnClear].forEach(function(b){ b.disabled = false; });
+    scrub.max = 1000;
+    seekTo(0);
+    updateAll();
+    say('Clip loaded.', 'Now click the two ends of your measuring stick, type its length, and choose Set the scale.');
+  });
+
+  video.addEventListener('error', function(){
+    S.loaded = false;
+    say('This clip did not decode in your browser.', decodeHelp());
+  });
+
+  function decodeHelp(){
+    return 'Almost always this means the clip is recorded in HEVC, also called H.265 or high efficiency video, '
+      + 'which many browsers will not decode. Your clip needs to be H.264 instead. '
+      + 'On a Pixel or other Android phone, open the camera app settings, look for high efficiency video or a video codec choice, '
+      + 'and turn it off or set it to H.264, then film the trial again. '
+      + 'On an iPhone, open Settings, then Camera, then Formats, and choose Most Compatible. '
+      + 'Safari decodes some clips that Chrome refuses, so trying Safari is worth one attempt before refilming.';
+  }
+
+  // ---------- frame stepping ----------
+  function seekTo(t){
+    if(!S.loaded) return;
+    var dur = isFinite(video.duration) ? video.duration : 0;
+    t = Math.max(0, Math.min(dur > 0 ? dur - 0.0005 : 0, t));
+    if(hasRVFC && !S.rvfcPending){
+      S.rvfcPending = true;
+      video.requestVideoFrameCallback(function(now, meta){
+        S.rvfcPending = false;
+        if(meta && isFinite(meta.mediaTime)) S.t = meta.mediaTime;
+        draw(); readClock();
+      });
+    }
+    video.currentTime = t;
+  }
+
+  video.addEventListener('seeked', function(){
+    S.t = video.currentTime;
+    draw(); readClock();
+  });
+
+  function frameStep(dir){
+    var fps = Math.max(1, parseFloat(fpsIn.value) || 60);
+    seekTo(S.t + dir * (1/fps));
+  }
+
+  btnPrev.addEventListener('click', function(){ pause(); frameStep(-1); });
+  btnNext.addEventListener('click', function(){ pause(); frameStep(1); });
+
+  btnPlay.addEventListener('click', function(){
+    if(S.playing) pause(); else play();
+  });
+  function play(){
+    if(!S.loaded) return;
+    S.playing = true; btnPlay.textContent = 'Pause';
+    video.play().catch(function(){ pause(); });
+    loop();
+  }
+  function pause(){
+    S.playing = false; btnPlay.textContent = 'Play';
+    video.pause();
+    S.t = video.currentTime;
+    draw(); readClock();
+  }
+  function loop(){
+    if(!S.playing) return;
+    S.t = video.currentTime;
+    draw(); readClock();
+    requestAnimationFrame(loop);
+  }
+  video.addEventListener('ended', pause);
+
+  scrub.addEventListener('input', function(){
+    if(!S.loaded) return;
+    pause();
+    var dur = isFinite(video.duration) ? video.duration : 0;
+    seekTo(dur * (parseFloat(scrub.value)/1000));
+  });
+
+  function readClock(){
+    clock.textContent = fmt(S.t, 3) + ' s';
+    var dur = isFinite(video.duration) && video.duration > 0 ? video.duration : 0;
+    if(dur > 0 && document.activeElement !== scrub){
+      scrub.value = Math.round(1000 * (S.t/dur));
+    }
+  }
+
+  document.addEventListener('keydown', function(e){
+    var tag = (e.target && e.target.tagName || '').toLowerCase();
+    if(tag === 'input' || tag === 'select' || tag === 'textarea') return;
+    if(!S.loaded) return;
+    if(e.key === 'ArrowLeft' || e.key === ','){ e.preventDefault(); pause(); frameStep(-1); }
+    else if(e.key === 'ArrowRight' || e.key === '.'){ e.preventDefault(); pause(); frameStep(1); }
+  });
+
+  // ---------- drawing ----------
+  function draw(){
+    if(!S.loaded){ return; }
+    try{ ctx.drawImage(video, 0, 0, cv.width, cv.height); }
+    catch(err){ return; }
+
+    var r = Math.max(2, Math.round(cv.width/300));
+
+    // scale line
+    if(S.scalePts.length){
+      ctx.lineWidth = Math.max(2, r/1.5);
+      ctx.strokeStyle = '#FFC627';
+      ctx.beginPath();
+      if(S.scalePts.length === 2){
+        ctx.moveTo(S.scalePts[0].x, S.scalePts[0].y);
+        ctx.lineTo(S.scalePts[1].x, S.scalePts[1].y);
+        ctx.stroke();
+      }
+      for(var i=0;i<S.scalePts.length;i++) tick(S.scalePts[i], '#FFC627', r*1.6);
+    }
+
+    // committed marks
+    drawTrack(S.marks.carrier, '#FFFFFF', r);
+    drawTrack(S.marks.object, '#1DB793', r);
+  }
+
+  function drawTrack(list, colour, r){
+    if(!list.length) return;
+    ctx.strokeStyle = colour; ctx.lineWidth = Math.max(1, r/2.5);
+    ctx.beginPath();
+    for(var i=0;i<list.length;i++){
+      if(i===0) ctx.moveTo(list[i].px, list[i].py); else ctx.lineTo(list[i].px, list[i].py);
+    }
+    ctx.stroke();
+    for(var k=0;k<list.length;k++){
+      ctx.fillStyle = colour;
+      ctx.beginPath(); ctx.arc(list[k].px, list[k].py, r, 0, 6.2832); ctx.fill();
+      ctx.strokeStyle = '#1B2450'; ctx.lineWidth = Math.max(1, r/3);
+      ctx.stroke();
+    }
+  }
+
+  function tick(p, colour, size){
+    ctx.strokeStyle = colour; ctx.lineWidth = Math.max(1, size/4);
+    ctx.beginPath();
+    ctx.moveTo(p.x - size, p.y); ctx.lineTo(p.x + size, p.y);
+    ctx.moveTo(p.x, p.y - size); ctx.lineTo(p.x, p.y + size);
+    ctx.stroke();
+  }
+
+  // ---------- pointer handling ----------
+  function toVideoCoords(evt){
+    var rect = cv.getBoundingClientRect();
+    return {
+      x: (evt.clientX - rect.left) * (cv.width / rect.width),
+      y: (evt.clientY - rect.top)  * (cv.height / rect.height)
+    };
+  }
+
+  cv.addEventListener('mousemove', function(e){
+    if(!S.loaded) return;
+    S.hover = toVideoCoords(e);
+    loupeWrap.classList.add('on');
+    drawLoupe();
+  });
+  cv.addEventListener('mouseleave', function(){
+    S.hover = null; loupeWrap.classList.remove('on');
+  });
+
+  function drawLoupe(){
+    if(!S.hover) return;
+    var span = Math.max(24, Math.round(cv.width/24)); // source window
+    var sx = S.hover.x - span/2, sy = S.hover.y - span/2;
+    lctx.imageSmoothingEnabled = false;
+    lctx.fillStyle = '#1B2450';
+    lctx.fillRect(0,0,loupe.width,loupe.height);
+    try{ lctx.drawImage(video, sx, sy, span, span, 0, 0, loupe.width, loupe.height); }catch(err){}
+    lctx.strokeStyle = '#1DB793'; lctx.lineWidth = 1;
+    lctx.beginPath();
+    lctx.moveTo(loupe.width/2, 0); lctx.lineTo(loupe.width/2, loupe.height);
+    lctx.moveTo(0, loupe.height/2); lctx.lineTo(loupe.width, loupe.height/2);
+    lctx.stroke();
+  }
+
+  cv.addEventListener('click', function(e){
+    if(!S.loaded) return;
+    var p = toVideoCoords(e);
+    if(S.mode === 'scale'){
+      if(S.scalePts.length >= 2) S.scalePts = [];
+      S.scalePts.push(p);
+      draw(); updateAll();
+      return;
+    }
+    if(S.mode === 'mark'){
+      commitPoint(p);
+      draw(); updateAll();
+    }
+  });
+
+  // ---------- committing a point ----------
+  function setTrack(name){
+    S.track = name;
+    var all = trackpick.querySelectorAll('button');
+    for(var i=0;i<all.length;i++){
+      all[i].classList.toggle('on', all[i].getAttribute('data-track') === name);
+    }
+  }
+
+  function nextFrame(){
+    var fps = Math.max(1, parseFloat(fpsIn.value) || 60);
+    seekTo(S.t + 1/fps);
+  }
+
+  function commitPoint(p){
+    S.marks[S.track].push({ t: S.t, px: p.x, py: p.y });
+    S.marks[S.track].sort(function(a,b){ return a.t - b.t; });
+    if(paired.checked){
+      if(S.track === 'object'){ setTrack('carrier'); return; }  // stay on this frame
+      setTrack('object');
+    }
+    nextFrame();
+  }
+
+  paired.addEventListener('change', function(){
+    setTrack('object'); draw(); updateAll();
+  });
+
+  btnRelease.addEventListener('click', function(){
+    if(!S.loaded) return;
+    // marking the same frame twice clears it, so this doubles as an undo
+    S.release = (S.release !== null && Math.abs(S.release - S.t) < 1e-4) ? null : S.t;
+    draw(); updateAll();
+  });
+
+  btnDelPoint.addEventListener('click', function(){
+    var eps = 1e-4, t;
+    if(paired.checked){
+      var lastO = S.marks.object.length  ? S.marks.object[S.marks.object.length-1].t   : -Infinity;
+      var lastC = S.marks.carrier.length ? S.marks.carrier[S.marks.carrier.length-1].t : -Infinity;
+      t = Math.max(lastO, lastC);
+      if(!isFinite(t)) return;
+      if(Math.abs(lastO - t) < eps) S.marks.object.pop();
+      if(Math.abs(lastC - t) < eps) S.marks.carrier.pop();
+      setTrack('object');
+    }else{
+      var arr = S.marks[S.track];
+      if(!arr.length) return;
+      t = arr[arr.length-1].t;
+      arr.pop();
+    }
+    seekTo(t);          // land back on the frame that was just cleared
+    draw(); updateAll();
+  });
+  btnClear.addEventListener('click', function(){
+    S.marks = {object:[], carrier:[]};
+    S.release = null;
+    draw(); updateAll();
+  });
+
+  // ---------- scale ----------
+  btnScale.addEventListener('click', function(){
+    if(S.scalePts.length !== 2){
+      say('Two clicks needed.', 'Click one end of the measuring stick, then the other, then choose Set the scale again.');
+      return;
+    }
+    var L = parseFloat(scaleLen.value);
+    if(!(L > 0)){
+      say('Length missing.', 'Type the real length of the measuring stick in metres.');
+      return;
+    }
+    var dpx = Math.hypot(S.scalePts[0].x - S.scalePts[1].x, S.scalePts[0].y - S.scalePts[1].y);
+    if(dpx < 10){
+      say('Those two clicks are very close together.', 'A short reference line makes every later measurement worse. Click points further apart.');
+      return;
+    }
+    S.pxPerMetre = dpx / L;
+    S.mode = 'mark';
+    clearSay();
+    updateAll();
+  });
+
+  btnScaleClear.addEventListener('click', function(){
+    S.scalePts = []; S.pxPerMetre = null; S.mode = 'scale';
+    draw(); updateAll();
+  });
+
+  // ---------- track choice ----------
+  trackpick.addEventListener('click', function(e){
+    var b = e.target.closest('button'); if(!b) return;
+    setTrack(b.getAttribute('data-track'));
+    draw(); updateAll();
+  });
+
+  // ---------- physics: fits ----------
+  // one origin shared by both tracks, so exported positions are comparable
+  function sharedOrigin(){
+    var o = S.marks.object, c = S.marks.carrier;
+    var base = o.length ? o[0] : (c.length ? c[0] : null);
+    if(!base) return null;
+    var t0 = base.t;
+    if(o.length) t0 = Math.min(t0, o[0].t);
+    if(c.length) t0 = Math.min(t0, c[0].t);
+    return { x0: base.px, y0: base.py, t0: t0 };
+  }
+
+  function toMetres(list){
+    if(!S.pxPerMetre || !list.length) return [];
+    var o = sharedOrigin();
+    if(!o) return [];
+    return list.map(function(m){
+      return {
+        t: m.t - o.t0,
+        tAbs: m.t,
+        x: (m.px - o.x0)/S.pxPerMetre,
+        y: (o.y0 - m.py)/S.pxPerMetre      // up is positive
+      };
+    });
+  }
+
+  // object points from the release frame onward, for the two acceleration fits
+  function afterRelease(list){
+    if(S.release === null) return list;
+    return list.filter(function(p){ return p.tAbs >= S.release - 1e-6; });
+  }
+
+  function linFit(ts, ys){
+    var n = ts.length;
+    if(n < 3) return null;
+    var st=0, sy=0;
+    for(var i=0;i<n;i++){ st+=ts[i]; sy+=ys[i]; }
+    var mt=st/n, my=sy/n, sxx=0, sxy=0;
+    for(i=0;i<n;i++){ sxx += (ts[i]-mt)*(ts[i]-mt); sxy += (ts[i]-mt)*(ys[i]-my); }
+    if(sxx <= 0) return null;
+    var m = sxy/sxx, b = my - m*mt;
+    var sse=0, sst=0;
+    for(i=0;i<n;i++){ var f = m*ts[i]+b; sse += (ys[i]-f)*(ys[i]-f); sst += (ys[i]-my)*(ys[i]-my); }
+    var s2 = n > 2 ? sse/(n-2) : 0;
+    return { m:m, b:b, r2: sst>0 ? 1-sse/sst : 1, se: Math.sqrt(s2/sxx), n:n };
+  }
+
+  function quadFit(ts, ys){
+    var n = ts.length;
+    if(n < 4) return null;
+    var S0=n,S1=0,S2=0,S3=0,S4=0,T0=0,T1=0,T2=0, i, t, y;
+    for(i=0;i<n;i++){
+      t = ts[i]; y = ys[i];
+      S1+=t; S2+=t*t; S3+=t*t*t; S4+=t*t*t*t;
+      T0+=y; T1+=t*y; T2+=t*t*y;
+    }
+    var A = [[S0,S1,S2],[S1,S2,S3],[S2,S3,S4]];
+    var Bv= [T0,T1,T2];
+    var sol = solve3(A, Bv);
+    if(!sol) return null;
+    var inv = inv3(A);
+    if(!inv) return null;
+    var c0=sol[0], c1=sol[1], c2=sol[2];
+    var sse=0, sst=0, my=T0/n;
+    for(i=0;i<n;i++){
+      t=ts[i]; var f = c0 + c1*t + c2*t*t;
+      sse += (ys[i]-f)*(ys[i]-f); sst += (ys[i]-my)*(ys[i]-my);
+    }
+    var s2 = n > 3 ? sse/(n-3) : 0;
+    return {
+      c0:c0, c1:c1, c2:c2, n:n,
+      r2: sst>0 ? 1-sse/sst : 1,
+      seC2: Math.sqrt(Math.max(0, s2*inv[2][2]))
+    };
+  }
+
+  function solve3(Ain, bin){
+    var A = Ain.map(function(r){ return r.slice(); });
+    var b = bin.slice();
+    for(var c=0;c<3;c++){
+      var piv=c;
+      for(var r=c+1;r<3;r++) if(Math.abs(A[r][c]) > Math.abs(A[piv][c])) piv=r;
+      if(Math.abs(A[piv][c]) < 1e-14) return null;
+      if(piv!==c){ var tr=A[piv]; A[piv]=A[c]; A[c]=tr; var tb=b[piv]; b[piv]=b[c]; b[c]=tb; }
+      for(r=c+1;r<3;r++){
+        var f = A[r][c]/A[c][c];
+        for(var k=c;k<3;k++) A[r][k] -= f*A[c][k];
+        b[r] -= f*b[c];
+      }
+    }
+    var x=[0,0,0];
+    for(var i=2;i>=0;i--){
+      var s=b[i];
+      for(var j=i+1;j<3;j++) s -= A[i][j]*x[j];
+      x[i] = s/A[i][i];
+    }
+    return x;
+  }
+
+  function inv3(M){
+    var a=M[0][0],b=M[0][1],c=M[0][2],d=M[1][0],e=M[1][1],f=M[1][2],g=M[2][0],h=M[2][1],i=M[2][2];
+    var det = a*(e*i-f*h) - b*(d*i-f*g) + c*(d*h-e*g);
+    if(Math.abs(det) < 1e-18) return null;
+    return [
+      [ (e*i-f*h)/det, (c*h-b*i)/det, (b*f-c*e)/det ],
+      [ (f*g-d*i)/det, (a*i-c*g)/det, (c*d-a*f)/det ],
+      [ (d*h-e*g)/det, (b*g-a*h)/det, (a*e-b*d)/det ]
+    ];
+  }
+
+  // ---------- graphs ----------
+  function plot(canvas, series, opts){
+    var g = canvas.getContext('2d');
+    var W = canvas.width, H = canvas.height;
+    var padL = 74, padR = 16, padT = 16, padB = 52;
+    g.clearRect(0,0,W,H);
+    g.fillStyle = '#FFFFFF'; g.fillRect(0,0,W,H);
+
+    var pts   = series.points  || [];
+    var pts2  = series.points2 || [];
+    var curve = series.curve   || [];
+    var all   = pts.concat(pts2, curve);
+    if(!all.length){
+      g.fillStyle = '#747474'; g.font = '18px Arial';
+      g.fillText(opts.empty || 'No data yet', padL, H/2);
+      return;
+    }
+
+    var xs = all.map(function(p){ return p.x; });
+    var ys = all.map(function(p){ return p.y; });
+    var xmin = Math.min.apply(null, xs), xmax = Math.max.apply(null, xs);
+    var ymin = Math.min.apply(null, ys), ymax = Math.max.apply(null, ys);
+    if(xmax - xmin < 1e-9){ xmax = xmin + 1; }
+    if(ymax - ymin < 1e-9){ ymax = ymin + 1; }
+    var xpad = 0.06*(xmax-xmin), ypad = 0.10*(ymax-ymin);
+    xmin -= xpad; xmax += xpad; ymin -= ypad; ymax += ypad;
+
+    function X(v){ return padL + (v - xmin)/(xmax-xmin) * (W-padL-padR); }
+    function Y(v){ return H-padB - (v - ymin)/(ymax-ymin) * (H-padT-padB); }
+
+    // grid and axes
+    g.strokeStyle = '#E8E8E8'; g.lineWidth = 1;
+    g.font = '17px ui-monospace, Menlo, Consolas, monospace';
+    g.fillStyle = '#747474';
+    var i, gx, gy, v;
+    for(i=0;i<=4;i++){
+      v = ymin + (ymax-ymin)*i/4; gy = Y(v);
+      g.beginPath(); g.moveTo(padL, gy); g.lineTo(W-padR, gy); g.stroke();
+      g.textAlign = 'right'; g.textBaseline = 'middle';
+      g.fillText(v.toFixed(2), padL-8, gy);
+    }
+    for(i=0;i<=4;i++){
+      v = xmin + (xmax-xmin)*i/4; gx = X(v);
+      g.beginPath(); g.moveTo(gx, padT); g.lineTo(gx, H-padB); g.stroke();
+      g.textAlign = 'center'; g.textBaseline = 'top';
+      g.fillText(v.toFixed(2), gx, H-padB+8);
+    }
+    g.strokeStyle = '#1B2450'; g.lineWidth = 2;
+    g.beginPath(); g.moveTo(padL, padT); g.lineTo(padL, H-padB); g.lineTo(W-padR, H-padB); g.stroke();
+
+    g.fillStyle = '#747474'; g.font = '17px Arial'; g.textAlign = 'center'; g.textBaseline = 'bottom';
+    g.fillText(opts.xlab || '', padL + (W-padL-padR)/2, H-6);
+    g.save();
+    g.translate(18, padT + (H-padT-padB)/2); g.rotate(-Math.PI/2);
+    g.textBaseline = 'top';
+    g.fillText(opts.ylab || '', 0, 0);
+    g.restore();
+
+    // fitted curve
+    if(series.curve && series.curve.length){
+      g.strokeStyle = '#1DB793'; g.lineWidth = 3;
+      g.beginPath();
+      series.curve.forEach(function(p, k){
+        if(k===0) g.moveTo(X(p.x), Y(p.y)); else g.lineTo(X(p.x), Y(p.y));
+      });
+      g.stroke();
+    }
+
+    // points
+    pts.forEach(function(p){
+      g.fillStyle = series.colour || '#1B2450';
+      g.beginPath(); g.arc(X(p.x), Y(p.y), 5, 0, 6.2832); g.fill();
+    });
+
+    // secondary point set
+    if(series.points2 && series.points2.length){
+      series.points2.forEach(function(p){
+        g.strokeStyle = '#8C1D40'; g.lineWidth = 2;
+        g.beginPath(); g.arc(X(p.x), Y(p.y), 4.5, 0, 6.2832); g.stroke();
+      });
+    }
+  }
+
+  // ---------- master refresh ----------
+  function updateAll(){
+    // scale readouts
+    if(S.pxPerMetre){
+      pxpm.textContent = S.pxPerMetre.toFixed(1);
+      pxpmFoot.textContent = 'One pixel is about ' + (1000/S.pxPerMetre).toFixed(1) + ' mm at that distance.';
+      scaleHint.textContent = 'Scale is set. Choose Clear if the camera moved or you framed a new clip.';
+    }else{
+      pxpm.textContent = '\u2014';
+      pxpmFoot.textContent = S.scalePts.length === 1 ? 'One end marked. Click the other end.' : 'Not set';
+      scaleHint.textContent = 'Click the two ends of your measuring stick in the frame, then type its real length.';
+    }
+    btnScaleClear.disabled = !(S.scalePts.length || S.pxPerMetre);
+
+    // marking readouts
+    if(!S.pxPerMetre){
+      markHint.textContent = 'Set the scale first, then click the object once on each frame.';
+    }else if(paired.checked){
+      markHint.textContent = (S.track === 'object')
+        ? 'Click the object on this frame. The carrier comes next, on the same frame.'
+        : 'Now click the carrier on this same frame. The view steps forward after that.';
+    }else{
+      markHint.textContent = 'Click the same feature of the ' + S.track + ' once, and the view steps forward one frame on its own.';
+    }
+    tallyObject.textContent  = S.marks.object.length  + (S.marks.object.length === 1 ? ' point' : ' points');
+    tallyCarrier.textContent = S.marks.carrier.length + (S.marks.carrier.length === 1 ? ' point' : ' points');
+    if(paired.checked){
+      btnDelPoint.disabled = !(S.marks.object.length || S.marks.carrier.length);
+      btnDelPoint.textContent = (S.track === 'carrier') ? 'Delete object point' : 'Delete last pair';
+    }else{
+      btnDelPoint.disabled = S.marks[S.track].length === 0;
+      btnDelPoint.textContent = 'Delete last point';
+    }
+    btnClear.disabled = !(S.marks.object.length || S.marks.carrier.length);
+
+    var O = toMetres(S.marks.object);
+    var C = toMetres(S.marks.carrier);
+
+    // object sideways velocity
+    var fo = O.length >= 3 ? linFit(O.map(function(p){return p.t;}), O.map(function(p){return p.x;})) : null;
+    var fc = C.length >= 3 ? linFit(C.map(function(p){return p.t;}), C.map(function(p){return p.x;})) : null;
+
+    var voObj = document.getElementById('voObj'), voObjFoot = document.getElementById('voObjFoot');
+    if(fo){
+      voObj.innerHTML = fmt(fo.m,3) + ' <small>m/s</small>';
+      voObjFoot.textContent = 'give or take ' + fmt(fo.se,3) + ' m/s, straight line fit to ' + fo.n + ' points, r squared ' + fmt(fo.r2,4);
+    }else{ voObj.innerHTML = '\u2014'; voObjFoot.textContent = 'Needs 3 or more object points'; }
+
+    var voCar = document.getElementById('voCar'), voCarFoot = document.getElementById('voCarFoot');
+    if(fc){
+      voCar.innerHTML = fmt(fc.m,3) + ' <small>m/s</small>';
+      voCarFoot.textContent = 'give or take ' + fmt(fc.se,3) + ' m/s, straight line fit to ' + fc.n + ' points, r squared ' + fmt(fc.r2,4);
+    }else{ voCar.innerHTML = '\u2014'; voCarFoot.textContent = 'Needs 3 or more carrier points'; }
+
+    // the object's velocity in the carrier's frame: predicted zero, and defined when standing still
+    var vdiff = document.getElementById('vdiff'), vdiffFoot = document.getElementById('vdiffFoot');
+    if(fo && fc){
+      var dv = fo.m - fc.m, sdv = Math.sqrt(fo.se*fo.se + fc.se*fc.se);
+      vdiff.innerHTML = fmt(dv,3) + ' <small>m/s</small>';
+      var extra = Math.abs(fc.m) > 0.15 ? '  Ratio of the two is ' + fmt(fo.m/fc.m,3) + '.' : '';
+      vdiffFoot.textContent = 'give or take ' + fmt(sdv,3) + ' m/s.' + extra;
+    }else{ vdiff.innerHTML = '\u2014'; vdiffFoot.textContent = 'Both tracks needed'; }
+
+    // accelerations, from the release frame onward if one is marked
+    var Oa = afterRelease(O);
+    var qy = Oa.length >= 4 ? quadFit(Oa.map(function(p){return p.t;}), Oa.map(function(p){return p.y;})) : null;
+    var qx = Oa.length >= 4 ? quadFit(Oa.map(function(p){return p.t;}), Oa.map(function(p){return p.x;})) : null;
+    var relNote = (S.release === null)
+      ? ' No release frame marked, so every object point is included.'
+      : ' Using the ' + Oa.length + ' points from the release frame onward.';
+
+    var accel = document.getElementById('accel'), accelFoot = document.getElementById('accelFoot');
+    if(qy){
+      var a = 2*qy.c2, sa = 2*qy.seC2;
+      accel.innerHTML = fmt(a,2) + ' <small>m/s squared</small>';
+      var pct = Math.abs((Math.abs(a) - 9.81)/9.81)*100;
+      accelFoot.textContent = 'give or take ' + fmt(sa,2) + '. Size is ' + fmt(Math.abs(a),2)
+        + ', which is ' + pct.toFixed(1) + ' percent from 9.81.' + relNote;
+    }else{ accel.innerHTML = '\u2014'; accelFoot.textContent = 'Needs 4 or more object points'; }
+
+    var accelX = document.getElementById('accelX'), accelXFoot = document.getElementById('accelXFoot');
+    if(qx){
+      var ax = 2*qx.c2, sax = 2*qx.seC2;
+      accelX.innerHTML = fmt(ax,2) + ' <small>m/s squared</small>';
+      accelXFoot.textContent = 'give or take ' + fmt(sax,2) + '.' + relNote;
+    }else{ accelX.innerHTML = '\u2014'; accelXFoot.textContent = 'Needs 4 or more object points'; }
+
+    // release readout
+    btnRelease.disabled = !S.loaded;
+    if(S.release === null){
+      relVal.textContent = 'not marked';
+      relFoot.textContent = 'Step to the frame where your hand opens and mark it. Sideways velocity keeps using every point. Acceleration uses only what happens after release.';
+    }else{
+      relVal.textContent = fmt(S.release,3) + ' s';
+      relFoot.textContent = 'Marking the same frame again clears it.';
+    }
+
+    // graphs
+    var curveX = [];
+    if(fo && O.length){
+      var t1 = O[0].t, t2 = O[O.length-1].t;
+      for(var s=0;s<=40;s++){
+        var tt = t1 + (t2-t1)*s/40;
+        curveX.push({ x: tt, y: fo.m*tt + fo.b });
+      }
+    }
+    plot(document.getElementById('gx'), {
+      points: O.map(function(p){ return {x:p.t, y:p.x}; }),
+      curve: curveX, colour:'#1B2450'
+    }, { xlab:'time (s)', ylab:'sideways position (m)', empty:'Mark the object to see this' });
+
+    var curveY = [];
+    if(qy && Oa.length){
+      var u1 = Oa[0].t, u2 = Oa[Oa.length-1].t;
+      for(var q=0;q<=60;q++){
+        var uu = u1 + (u2-u1)*q/60;
+        curveY.push({ x: uu, y: qy.c0 + qy.c1*uu + qy.c2*uu*uu });
+      }
+    }
+    plot(document.getElementById('gy'), {
+      points: O.map(function(p){ return {x:p.t, y:p.y}; }),
+      curve: curveY, colour:'#1B2450'
+    }, { xlab:'time (s)', ylab:'height (m)', empty:'Mark the object to see this' });
+
+    // velocity two ways: differences vs derivative of the fit
+    var diffs = [];
+    for(var d=1;d<O.length;d++){
+      var dt = O[d].t - O[d-1].t;
+      if(dt > 1e-6) diffs.push({ x: 0.5*(O[d].t + O[d-1].t), y: (O[d].y - O[d-1].y)/dt });
+    }
+    var curveV = [];
+    if(qy && Oa.length){
+      var w1 = Oa[0].t, w2 = Oa[Oa.length-1].t;
+      for(var w=0;w<=40;w++){
+        var ww = w1 + (w2-w1)*w/40;
+        curveV.push({ x: ww, y: qy.c1 + 2*qy.c2*ww });
+      }
+    }
+    plot(document.getElementById('gv'), {
+      points: [], points2: diffs, curve: curveV
+    }, { xlab:'time (s)', ylab:'up and down velocity (m/s)', empty:'Mark 4 or more object points to see this' });
+
+    // table
+    renderTable(O, C);
+    btnCsv.disabled = !(O.length || C.length);
+    refreshStep();
+  }
+
+  function renderTable(O, C){
+    var rows = [];
+    function push(list, name){
+      list.forEach(function(p, i){
+        rows.push({ t:p.tAbs, name:name+' '+(i+1), x:p.x, y:p.y });
+      });
+    }
+    push(O, 'object'); push(C, 'carrier');
+    rows.sort(function(a,b){ return a.t - b.t; });
+    if(!rows.length){
+      tblBody.innerHTML = '<tr><td colspan="4" style="color:var(--muted)">No points yet</td></tr>';
+      return;
+    }
+    var html = '';
+    rows.forEach(function(r){
+      html += '<tr><td>' + r.name + '</td><td>' + fmt(r.t,3) + '</td><td>' + fmt(r.x,3)
+           + '</td><td>' + fmt(r.y,3) + '</td></tr>';
+    });
+    tblBody.innerHTML = html;
+  }
+
+  // ---------- CSV ----------
+  btnCsv.addEventListener('click', function(){
+    var O = toMetres(S.marks.object), C = toMetres(S.marks.carrier);
+    var fo = O.length>=3 ? linFit(O.map(function(p){return p.t;}), O.map(function(p){return p.x;})) : null;
+    var fc = C.length>=3 ? linFit(C.map(function(p){return p.t;}), C.map(function(p){return p.x;})) : null;
+    var Oa = afterRelease(O);
+    var qy = Oa.length>=4 ? quadFit(Oa.map(function(p){return p.t;}), Oa.map(function(p){return p.y;})) : null;
+    var qx = Oa.length>=4 ? quadFit(Oa.map(function(p){return p.t;}), Oa.map(function(p){return p.x;})) : null;
+
+    var who = (document.getElementById('who').value || '').replace(/[",\n]/g,' ');
+    var trial = (document.getElementById('trial').value || '').replace(/[",\n]/g,' ');
+    var L = [];
+    L.push('# Frame by Frame motion analysis');
+    L.push('# name,' + who);
+    L.push('# trial,' + trial);
+    L.push('# clip,' + (fileIn.files && fileIn.files[0] ? fileIn.files[0].name.replace(/[",\n]/g,' ') : ''));
+    L.push('# frames per second entered,' + (parseFloat(fpsIn.value)||''));
+    L.push('# reference length m,' + (parseFloat(scaleLen.value)||''));
+    L.push('# pixels per metre,' + (S.pxPerMetre ? S.pxPerMetre.toFixed(3) : ''));
+    L.push('# object sideways velocity m per s,' + (fo ? fo.m.toFixed(4) : ''));
+    L.push('# object sideways velocity uncertainty,' + (fo ? fo.se.toFixed(4) : ''));
+    L.push('# carrier sideways velocity m per s,' + (fc ? fc.m.toFixed(4) : ''));
+    L.push('# carrier sideways velocity uncertainty,' + (fc ? fc.se.toFixed(4) : ''));
+    L.push('# object minus carrier m per s,' + (fo && fc ? (fo.m-fc.m).toFixed(4) : ''));
+    L.push('# object minus carrier uncertainty,' + (fo && fc ? Math.sqrt(fo.se*fo.se+fc.se*fc.se).toFixed(4) : ''));
+    L.push('# ratio object over carrier,' + (fo && fc && Math.abs(fc.m)>0.15 ? (fo.m/fc.m).toFixed(4) : ''));
+    L.push('# release frame time s,' + (S.release !== null ? S.release.toFixed(4) : ''));
+    L.push('# vertical acceleration m per s squared,' + (qy ? (2*qy.c2).toFixed(3) : ''));
+    L.push('# vertical acceleration uncertainty,' + (qy ? (2*qy.seC2).toFixed(3) : ''));
+    L.push('# sideways acceleration m per s squared,' + (qx ? (2*qx.c2).toFixed(3) : ''));
+    L.push('# sideways acceleration uncertainty,' + (qx ? (2*qx.seC2).toFixed(3) : ''));
+    L.push('# positions are measured from a single shared origin for both tracks,');
+    L.push('track,point,time_s,x_m,y_m');
+    function rowsFor(list, name){
+      list.forEach(function(p, i){
+        L.push([name, i+1, p.tAbs.toFixed(4), p.x.toFixed(4), p.y.toFixed(4)].join(','));
+      });
+    }
+    rowsFor(O, 'object'); rowsFor(C, 'carrier');
+
+    var blob = new Blob([L.join('\n')], {type:'text/csv'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    var stamp = (who ? who.replace(/\s+/g,'_') + '_' : '') + (trial ? trial.replace(/\s+/g,'_') : 'trial');
+    a.href = url; a.download = 'motion_' + stamp + '.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
+  });
+
+  fpsIn.addEventListener('change', function(){
+    var f = parseFloat(fpsIn.value);
+    document.getElementById('fpsNote').textContent = (f >= 50)
+      ? 'Sets the step size only. Times come from the clip itself.'
+      : 'Sets the step size only. Below 50 you will get few points on a short fall, so film at 60 if your phone offers it.';
+  });
+
+  if(!hasRVFC){
+    say('Frame timing note.', 'This browser does not report exact frame times, so the app uses the clip clock instead. It still works. Chrome, Edge, or Safari will give slightly tighter timing.');
+  }
+
+  updateAll();
+})();
+</script>
+</body>
+</html>
