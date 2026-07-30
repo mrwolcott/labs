@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oscillation Analysis</title>
+<style>
+:root{
+  --navy:#1B2450; --teal:#1DB793; --gray1:#191919; --gray:#747474;
+  --g5:#D0D0D0; --g6:#E8E8E8; --g7:#FAFAFA; --maroon:#8C1D40; --gold:#FFC627;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; font-family:Arial,Helvetica,sans-serif; color:var(--gray1);
+  background:#fff; line-height:1.55; -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:900px;margin:0 auto;padding:0 20px 80px}
+header{background:var(--navy);color:#fff;padding:26px 0 22px;margin-bottom:26px}
+header .wrap{padding-bottom:0}
+h1{font-size:26px;margin:0 0 6px;font-weight:bold}
+header p{margin:0;color:#C7CBDB;font-size:14px}
+h2{font-size:18px;margin:0;font-weight:bold;color:var(--navy)}
+h3{font-size:15px;margin:22px 0 8px;font-weight:bold;color:var(--navy)}
+.step{border:1px solid var(--g5);border-radius:6px;margin-bottom:18px;background:#fff}
+.step>.head{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--g5);background:var(--g7);border-radius:6px 6px 0 0}
+.step>.head .n{flex:0 0 26px;height:26px;border-radius:50%;background:var(--teal);color:#fff;font-weight:bold;font-size:13px;display:flex;align-items:center;justify-content:center}
+.step>.body{padding:18px}
+.step.locked{opacity:.5;pointer-events:none}
+p.note{font-size:13px;color:var(--gray);margin:6px 0 0}
+button{font-family:inherit;font-size:14px;padding:9px 16px;border:1px solid var(--navy);background:#fff;color:var(--navy);border-radius:4px;cursor:pointer}
+button:hover:not(:disabled){background:var(--navy);color:#fff}
+button:disabled{opacity:.4;cursor:not-allowed}
+button.primary{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:bold}
+button.primary:hover:not(:disabled){background:#178f74;border-color:#178f74}
+button.sm{padding:6px 11px;font-size:13px}
+input[type=number],input[type=text],select{font-family:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--g5);border-radius:4px;width:110px}
+label{font-size:14px;display:inline-block}
+.row{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-bottom:12px}
+.tabs{display:flex;flex-wrap:wrap;gap:0;border-bottom:2px solid var(--g5);margin-bottom:0}
+.tab{padding:11px 15px;font-size:14px;cursor:pointer;border:none;background:none;color:var(--gray);border-bottom:3px solid transparent;margin-bottom:-2px;border-radius:0}
+.tab:hover{background:var(--g7);color:var(--navy)}
+.tab.on{color:var(--navy);font-weight:bold;border-bottom-color:var(--teal);background:none}
+.panel{display:none;padding-top:18px}
+.panel.on{display:block}
+canvas{max-width:100%;display:block;background:var(--g6);border:1px solid var(--g5);border-radius:4px}
+#stageS,#stage,#stageD{position:relative;display:inline-block;max-width:100%}
+#ovS,#overlay,#ovD{position:absolute;left:0;top:0;cursor:crosshair;display:none;background:transparent;border:none;border-radius:0}
+video{display:none;background:var(--g6);border:1px solid var(--g5);border-radius:4px}
+#park{position:absolute;left:-10000px;top:0;width:1px;height:1px;overflow:hidden}
+.diag{font-family:var(--mono,monospace);font-size:12px;white-space:pre-wrap;background:var(--g7);border:1px solid var(--g5);border-radius:4px;padding:12px;margin-top:12px;color:var(--gray1)}
+table{border-collapse:collapse;width:100%;font-size:13px;margin-top:10px}
+th,td{border:1px solid var(--g5);padding:7px 9px;text-align:left}
+th{background:var(--g6);font-weight:bold;color:var(--navy)}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.result{background:var(--g7);border-left:4px solid var(--teal);padding:14px 16px;margin-top:14px;border-radius:0 4px 4px 0}
+.result .big{font-size:26px;font-weight:bold;color:var(--navy);font-variant-numeric:tabular-nums}
+.result .lbl{font-size:12px;color:var(--gray);text-transform:uppercase;letter-spacing:.06em}
+.warn{background:#FDF6E3;border-left:4px solid var(--gold);padding:12px 15px;margin-top:12px;font-size:13px;border-radius:0 4px 4px 0}
+.err{background:#FBECEF;border-left:4px solid var(--maroon);padding:12px 15px;margin-top:12px;font-size:13px;border-radius:0 4px 4px 0}
+.ok{background:#EAF7F3;border-left:4px solid var(--teal);padding:12px 15px;margin-top:12px;font-size:13px;border-radius:0 4px 4px 0}
+.hint{font-size:13px;color:var(--gray);margin:0 0 14px}
+.bar{height:6px;background:var(--g6);border-radius:3px;overflow:hidden;margin-top:10px}
+.bar i{display:block;height:100%;background:var(--teal);width:0}
+.priv{font-size:12px;color:var(--gray);border-top:1px solid var(--g5);margin-top:34px;padding-top:14px}
+.kv{display:flex;gap:26px;flex-wrap:wrap;font-size:13px;color:var(--gray);margin-top:10px}
+.kv b{color:var(--gray1);font-weight:bold}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.pill{display:inline-block;font-size:11px;font-weight:bold;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:3px;background:var(--teal);color:#fff}
+.pill.gray{background:var(--gray)}
+@media(max-width:600px){.tab{padding:9px 10px;font-size:13px}h1{font-size:21px}}
+</style>
+</head>
+<body>
+
+<header><div class="wrap">
+<h1>Oscillation Analysis</h1>
+<p>Measure how fast something is swinging back and forth, from your own video. Nothing leaves your device.</p>
+</div></header>
+
+<div class="wrap">
+
+<div class="step" id="s1">
+  <div class="head"><span class="n">1</span><h2>Load your clip</h2></div>
+  <div class="body">
+    <p class="hint">Choose the video file of your twang.</p>
+    <div class="row">
+      <input type="file" id="file" accept="video/*,audio/*">
+    </div>
+    <div id="fileinfo"></div>
+    <div id="blanknote"></div>
+    <div class="row" style="margin-top:10px"><button class="sm" id="diagBtn">Show technical details</button></div>
+    <div id="diag"></div>
+    <div class="row" style="margin-top:14px">
+      <label>You filmed at <input type="number" id="capfps" value="240" min="1" max="2000" step="1"> fps</label>
+      <label>The file plays at <input type="number" id="filefps" value="240" min="1" max="2000" step="1"> fps</label>
+      <span class="pill gray" id="fpsauto">checking the file</span>
+    </div>
+    <p class="note">Set the first box to the camera mode you filmed in. Slow motion is usually 120 or 240. Normal video is 30 or 60. The app fills in the second box by itself by watching the clip play, so leave that one alone unless it fails.</p>
+    <div id="fpsreport"></div>
+    <div id="slowreport"></div>
+  </div>
+</div>
+
+<div class="step locked" id="s2">
+  <div class="head"><span class="n">2</span><h2>Measure the swing</h2></div>
+  <div class="body">
+    <div class="tabs">
+      <button class="tab on" data-p="pS">Set the scale</button>
+      <button class="tab" data-p="pD">Trace the whole motion</button>
+      <button class="tab" data-p="pA">Time the turning points</button>
+    </div>
+
+    <div class="panel on" id="pS">
+      <p class="hint">Start here. Move the slider to a moment before the twang, where the ruler is sitting still. Mark the edge it is clamped against, then mark its tip, and type in the overhang you measured. The ruler acts as its own measuring stick, so there is nothing to hold up to the camera and nothing sitting at the wrong distance.</p>
+      <div id="stageS">
+        <canvas id="ovS" width="640" height="360"></canvas>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <input type="range" id="scrubS" min="0" max="0" value="0" step="1" style="flex:1;min-width:180px">
+        <span class="kv"><span>Frame <b id="fnumS">0</b></span><span>Time <b id="ftimeS">0.0000</b> s</span></span>
+      </div>
+      <div class="row">
+        <label>Overhang <input type="number" id="ohLen" value="20" min="0.5" step="0.1"> cm</label>
+        <button class="sm" id="markClamp">Mark the clamped edge</button>
+        <button class="sm" id="markRest">Mark the tip at rest</button>
+        <button class="sm" id="clearRefs">Clear both marks</button>
+      </div>
+      <div id="refState"></div>
+      <p class="note">These two marks do three jobs. The tip gives the app the still position to measure every swing from. The line between them gives the direction the ruler points, so the swing is measured square to it even if the ruler sits at an angle in the picture. And that same line is a length you already know, which turns pixels into millimetres.</p>
+    </div>
+
+    <div class="panel" id="pD">
+      <p class="hint">Do this one first, and only once. Click the object in every single frame, working forward through the clip. Use the arrow keys to step and click to place each point. It is slow, but it is the only measurement here that assumes nothing at all about how the ruler moves: you are recording where it actually was, frame by frame, and letting the shape appear on its own.</p>
+      <p class="note">Watch the graph as you go. Once you have a couple of swings down you will be able to see what shape the motion has, and that shape is what makes the quicker method on the next tab trustworthy.</p>
+      <p class="note">This uses the marks and the overhang from the Set the scale tab as well.</p>
+      <div id="stageD">
+        <canvas id="ovD" width="640" height="360"></canvas>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <input type="range" id="scrubD" min="0" max="0" value="0" step="1" style="flex:1;min-width:180px">
+      </div>
+      <div class="row">
+        <button class="sm" id="dPrev">&laquo; 1 frame</button>
+        <button class="sm" id="dNext">1 frame &raquo;</button>
+        <button class="sm" id="dUndo">Undo last</button>
+        <button class="sm" id="clearD">Clear all</button>
+        <span class="kv"><span>Frame <b id="dfnum">0</b></span><span>Points <b id="dn">0</b></span></span>
+      </div>
+      <canvas id="traceCv" width="860" height="280"></canvas>
+      <div id="outD"></div>
+    </div>
+    <div class="panel" id="pA">
+      <p class="note">This uses the marks and the overhang from the Set the scale tab.</p>
+      <p class="hint">This is the quick way, and it works because of what the trace showed you. If the motion is a smooth swing that repeats, then the only moments you actually need are the ones where it turns around. Everything in between is already accounted for by the shape. So instead of sixty clicks you need about a dozen, and you can afford to do this for every overhang.</p>
+      <p class="hint">Find a frame where the object is as far over as it gets, then <b>click on the object</b>. Do that for every turning point you can find. You do not have to stick to one side: the app works out which side each click is on and handles it. Ten or more gives a good result, and it fits a line through your clicks so one slightly late click barely matters.</p>
+      <p class="note">If you could hear a clear note when you twanged it, that pitch is much higher than the number you are about to measure, and both are right. A bar held at one end also bends in faster patterns at the same time, and those are the ones that carry as sound, while the big slow swing you are measuring barely moves any air.</p>
+      <div id="stage">
+        <canvas id="overlay" width="640" height="360"></canvas>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <input type="range" id="scrubA" min="0" max="0" value="0" step="1" style="flex:1;min-width:180px">
+        <span class="kv"><span>Frame <b id="fnum">0</b></span><span>Time <b id="ftime">0.000</b> s</span></span>
+      </div>
+      <div class="row">
+        <button class="sm" id="pv10">&laquo; 10</button>
+        <button class="sm" id="pv1">&laquo; 1 frame</button>
+        <button class="sm" id="nx1">1 frame &raquo;</button>
+        <button class="sm" id="nx10">10 &raquo;</button>
+        <button class="sm" id="undo">Undo last</button>
+        <button class="sm" id="clearA">Clear all</button>
+        <span class="kv"><span>Clicks <b id="nmarks">0</b></span></span>
+      </div>
+      <canvas id="graphA" width="860" height="300"></canvas>
+      <p class="note">This curve is drawn through your turning points on the assumption that each half swing is smooth. That is a fair assumption here only because the trace tab showed you the real shape without assuming it.</p>
+      <div id="outA"></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="step locked" id="s3">
+  <div class="head"><span class="n">3</span><h2>Compare and record</h2></div>
+  <div class="body">
+    <p class="hint">Every measurement you take appears here. Where two methods measured the same clip, the app checks whether they agree.</p>
+    <div id="summary"><p class="note">No measurements yet.</p></div>
+    <div class="row" style="margin-top:14px">
+      <button id="copy">Copy results</button>
+      <button id="expAll">Download all clicks</button>
+      <button id="resetAll">Start over</button>
+    </div>
+  </div>
+</div>
+
+<p class="priv">Everything here runs inside your browser. Your clip is never uploaded, nothing is stored after you close the page, and no usage is recorded. Closing or reloading the page clears your work, so copy your results before you leave.</p>
+
+</div>
+
+<div id="park"><video id="vid" playsinline muted preload="auto"></video></div>
+
+<script>
+"use strict";
+
+var V = document.getElementById('vid');
+var capIn = document.getElementById('capfps');
+var fileIn = document.getElementById('filefps');
+var results = {};
+var frameCount = 0, duration = 0, curFrame = 0;
+var probeState = 'none';
+var srcName = '';
+
+function $(id){return document.getElementById(id);}
+function numOr(el, d){var v = parseFloat(el.value); return (isFinite(v) && v > 0) ? v : d;}
+function fileFps(){return numOr(fileIn, 30);}
+function capFps(){return numOr(capIn, fileFps());}
+function slowFactor(){return capFps()/fileFps();}
+function r(x,n){var p = Math.pow(10,n); return Math.round(x*p)/p;}
+function fmt(x,n){ if(!isFinite(x)) return "-"; return r(x,n).toFixed(n); }
+
+/* ---------- linear fit ---------- */
+function linfit(xs, ys){
+  var n = xs.length, sx=0, sy=0, sxx=0, sxy=0, i;
+  for(i=0;i<n;i++){sx+=xs[i]; sy+=ys[i]; sxx+=xs[i]*xs[i]; sxy+=xs[i]*ys[i];}
+  var den = n*sxx - sx*sx;
+  var m = (n*sxy - sx*sy)/den, b = (sy - m*sx)/n;
+  var ssr=0, sst=0, my=sy/n, resid=[];
+  for(i=0;i<n;i++){var p=m*xs[i]+b; resid.push(ys[i]-p); ssr+=(ys[i]-p)*(ys[i]-p); sst+=(ys[i]-my)*(ys[i]-my);}
+  var se = n>2 ? Math.sqrt(ssr/(n-2) * n/den) : NaN;
+  return {slope:m, intercept:b, r2: sst>0 ? 1-ssr/sst : 1, resid:resid, slopeErr:se};
+}
+
+/* ---------- file loading ---------- */
+$('file').addEventListener('change', function(e){
+  var f = e.target.files[0];
+  if(!f) return;
+  resetData();
+  srcName = f.name;
+  var url = URL.createObjectURL(f);
+  var info = $('fileinfo');
+  info.innerHTML = '<div class="kv"><span>File <b>' + f.name.replace(/[<>&]/g,'') + '</b></span><span>Size <b>' + r(f.size/1048576,1) + ' MB</b></span></div>';
+
+  f.slice(0, 4096).arrayBuffer().then(function(buf){
+    var s = '', u = new Uint8Array(buf), i;
+    for(i=0;i<u.length;i++) s += String.fromCharCode(u[i]);
+    var hevc = /hvc1|hev1|hvcC/.test(s), avc = /avc1|avcC/.test(s);
+    if(hevc && !avc){
+      info.innerHTML += '<div class="warn"><b>This clip is saved in HEVC.</b> Some browsers cannot open it. If the frame below stays blank, change your camera to the more compatible format and film again. On iPhone: Settings, Camera, Formats, Most Compatible. On Samsung and Pixel: Camera settings, Advanced video options, turn off HEVC or high efficiency.</div>';
+    } else if(avc){
+      info.innerHTML += '<div class="ok">Format looks widely compatible.</div>';
+    }
+  }).catch(function(){});
+
+  V.src = url;
+  V.load();
+
+});
+
+V.addEventListener('loadedmetadata', function(){
+  duration = V.duration;
+  frameCount = Math.max(1, Math.floor(duration * fileFps()));
+  sizeCanvases(V.videoWidth, V.videoHeight);
+  hostVideo('stageS');
+  $('s2').classList.remove('locked');
+  $('s3').classList.remove('locked');
+  reportRates();
+  initScrubs();
+  startProbe();
+});
+
+V.addEventListener('error', function(){
+  $('fileinfo').innerHTML += '<div class="err">This file could not be opened. If it is an HEVC clip, refilm using the more compatible format described above. Slow motion clips are saved in HEVC by default on many phones.</div>';
+});
+
+function reportRates(){
+  if(!duration) return;
+  frameCount = Math.max(1, Math.floor(duration * fileFps()));
+  initScrubs();
+  var realDur = frameCount / capFps();
+  $('fpsreport').innerHTML = '<div class="kv"><span>File length <b>' + fmt(duration,3) + ' s</b></span>' +
+    '<span>Real action captured <b>' + fmt(realDur,3) + ' s</b></span>' +
+    '<span>Size <b>' + V.videoWidth + ' by ' + V.videoHeight + '</b></span>' +
+    '<span>Frames <b>' + frameCount + '</b></span></div>';
+
+  var sf = slowFactor(), host = $('slowreport');
+  var round = [1,2,4,5,8,10,16,20,32].reduce(function(b,c){ return Math.abs(c-sf) < Math.abs(b-sf) ? c : b; }, 1);
+  var isRound = Math.abs(round-sf)/round < 0.06;
+
+  if(Math.abs(sf-1) < 0.03){
+    host.innerHTML = '<div class="ok">This clip plays at the same rate you filmed at, so nothing needs correcting. ' +
+      'Every time and frequency below is in real seconds.</div>';
+  } else if(sf > 1){
+    host.innerHTML = '<div class="ok"><b>This clip was saved already slowed down, by ' + fmt(sf,2) + ' times.</b> ' +
+      'That is normal for slow motion. The app has accounted for it, so every time and frequency below is in real seconds, ' +
+      'not in the stretched time you see when the clip plays.' +
+      (isRound ? '' : ' One thing to check: a slowdown of ' + fmt(sf,2) + ' is an odd number. Phones normally slow footage by a whole number like 4 or 8. Make sure the box saying what you filmed at matches the mode you actually used.') +
+      '</div>';
+  } else {
+    host.innerHTML = '<div class="warn">You have told the app you filmed at a lower rate than the file plays at, which would mean ' +
+      'the clip is sped up rather than slowed down. That is unusual. Check the two boxes above.</div>';
+  }
+}
+
+function startProbe(){
+  if(!V.requestVideoFrameCallback){
+    $('fpsauto').textContent = 'cannot check, enter it yourself';
+    $('slowreport').innerHTML += '<div class="warn">This browser cannot tell the app how fast the clip plays, so you must work it out yourself. ' +
+      'Time the action you filmed, then compare it with the file length above. A one second twang saved as an eight second file was slowed down eight times, ' +
+      'so if you filmed at 240 you would put 30 in the second box. If the file length matches real life, put the same number in both boxes. ' +
+      'Then reload and try in Chrome, Edge or Safari, where the check runs by itself.</div>';
+    return;
+  }
+  probeState = 'running';
+  $('fpsauto').textContent = 'checking the file';
+  var gaps = [], last = null, frames = 0;
+  var tick = function(now, meta){
+    if(last !== null){ var g = meta.mediaTime - last; if(g > 0.00005) gaps.push(g); }
+    last = meta.mediaTime; frames++;
+    if(gaps.length < 14 && frames < 40){ V.requestVideoFrameCallback(tick); return; }
+    finishProbe(gaps);
+  };
+  var go = function(){
+    V.currentTime = 0;
+    var p = V.play();
+    V.requestVideoFrameCallback(tick);
+    if(p && p.catch) p.catch(function(){
+      probeState = 'blocked';
+      $('fpsauto').textContent = 'press play to check';
+      $('slowreport').innerHTML += '<div class="warn">The browser would not let the app play the clip on its own, so the check has not run. ' +
+        'Tap anywhere on this page, then reload the file.</div>';
+    });
+  };
+  setTimeout(go, 120);
+}
+
+function finishProbe(gaps){
+  V.pause();
+  if(gaps.length < 5){ $('fpsauto').textContent = 'check failed, enter it yourself'; seekFrame(0); return; }
+  var sorted = gaps.slice().sort(function(a,b){return a-b;});
+  var med = sorted[sorted.length>>1];
+  var measured = 1/med;
+  var gmin = sorted[0], gmax = sorted[sorted.length-1];
+
+  var nice = [24,25,30,50,60,100,120,200,240,480,960].reduce(function(b,c){
+    return Math.abs(c-measured) < Math.abs(b-measured) ? c : b;
+  }, 30);
+  var use = (Math.abs(nice-measured)/nice < 0.1) ? nice : r(measured,2);
+  fileIn.value = use;
+  probeState = 'done';
+  $('fpsauto').textContent = 'read from the clip: ' + use + ' fps';
+  reportRates();
+
+  if(gmax/gmin > 1.6){
+    $('slowreport').innerHTML += '<div class="warn"><b>This clip does not run at one steady speed.</b> The gap between frames ' +
+      'changes by more than half across the part the app checked. On an iPhone this happens when only a section of the clip is set to play slowly ' +
+      'and the rest plays at normal speed. Analyse only the slow section, or refilm so the whole clip is slow motion.</div>';
+  }
+  var sf = slowFactor();
+  if(capFps() >= 120 && Math.abs(sf-1) < 0.03){
+    $('slowreport').innerHTML += '<div class="warn">You filmed in slow motion but this file plays at the same rate, which means the ' +
+      'slowdown was not baked in. That is good news and nothing needs correcting, but double check the real action length above against ' +
+      'what you actually filmed before you trust the numbers.</div>';
+  }
+  seekFrame(0);
+}
+
+capIn.addEventListener('change', function(){ reportRates(); recomputeA(); recomputeD(); });
+fileIn.addEventListener('change', function(){
+  reportRates();
+  recomputeA(); recomputeD();
+});
+
+function sizeCanvases(w,h){
+  if(!w || !h){ w = 640; h = 360; }
+  var s = Math.min(1, 640/w, 520/h);
+  var cw = Math.max(80, Math.round(w*s)), ch = Math.max(60, Math.round(h*s));
+  ['ovS','overlay','ovD'].forEach(function(id){
+    var c = $(id); c.width = cw; c.height = ch;
+    c.style.width = cw + 'px'; c.style.height = ch + 'px';
+    c.style.display = 'block';
+  });
+  V.style.display = 'block';
+  ['stageS','stage','stageD'].forEach(function(id){
+    var st = $(id);
+    if(st){ st.style.position = 'relative'; st.style.width = cw + 'px'; st.style.maxWidth = '100%'; }
+  });
+  V.style.width = cw + 'px';
+  V.style.height = ch + 'px';
+}
+
+/* The video element is the preview. Only one exists, so it moves to whichever panel is open. */
+function hostVideo(stageId){
+  var st = stageId ? $(stageId) : $('park');
+  if(!st) return;
+  if(V.parentNode !== st) st.insertBefore(V, st.firstChild);
+}
+
+/* ---------- frame seeking ----------
+   Seeking happens in the file's own timebase.
+   Every time reported to the student is real time, from the capture rate.
+   The draw waits for a frame that actually exists, not just for the seek to report done. */
+var seekToken = 0, verifyCv = null, blankStrikes = 0;
+
+function seekFrame(n, cb){
+  n = Math.max(0, Math.min(frameCount-1, n));
+  curFrame = n;
+  var token = ++seekToken, settled = false;
+  var t = (n + 0.5) / fileFps();
+  if(t > duration - 0.0005) t = Math.max(0, duration - 0.0005);
+
+  var finish = function(){
+    if(settled || token !== seekToken) return;
+    settled = true;
+    drawFrames();
+    $('fnum').textContent = curFrame;
+    $('dfnum').textContent = curFrame;
+    $('fnumS').textContent = curFrame;
+    $('ftime').textContent = fmt(frameTime(curFrame),4);
+    $('ftimeS').textContent = fmt(frameTime(curFrame),4);
+    syncScrubs();
+    checkFrameDrew();
+    if(cb) cb();
+  };
+
+  var afterSeek = function(){
+    V.removeEventListener('seeked', afterSeek);
+    if(V.requestVideoFrameCallback){
+      V.requestVideoFrameCallback(function(){ finish(); });
+      setTimeout(finish, 300);
+    } else if(V.readyState >= 2){
+      finish();
+    } else {
+      var tries = 0;
+      var poll = setInterval(function(){
+        if(V.readyState >= 2 || ++tries > 25){ clearInterval(poll); finish(); }
+      }, 40);
+    }
+  };
+
+  V.addEventListener('seeked', afterSeek);
+  if(Math.abs(V.currentTime - t) < 1e-6){ afterSeek(); return; }
+  V.currentTime = t;
+}
+function frameTime(n){ return n / capFps(); }
+
+/* A definitive test: if drawing the video leaves every pixel transparent,
+   no frame was produced at all, which points at the codec rather than the clip. */
+function checkFrameDrew(){
+  try{
+    if(!verifyCv){ verifyCv = document.createElement('canvas'); verifyCv.width = 16; verifyCv.height = 16; }
+    var vx = verifyCv.getContext('2d', {willReadFrequently:true});
+    vx.clearRect(0,0,16,16);
+    vx.drawImage(V, 0, 0, 16, 16);
+    var d = vx.getImageData(0,0,16,16).data, i, drew = false;
+    for(i=3;i<d.length;i+=4){ if(d[i] !== 0){ drew = true; break; } }
+    if(drew){ blankStrikes = 0; var b = $('blanknote'); if(b) b.innerHTML = ''; return; }
+    blankStrikes++;
+    if(blankStrikes === 3) showBlankNote();
+  }catch(e){}
+}
+
+function showBlankNote(){
+  var host = $('blanknote');
+  if(!host) return;
+  host.innerHTML = '<div class="warn"><b>The picture is not appearing.</b> Try Chrome or Edge on a computer, which is the most reliable ' +
+    'combination for stepping through a clip frame by frame.</div>';
+}
+
+function drawFrames(){
+  drawOverlayA(); drawOverlayD(); drawRefs();
+}
+
+function canvasPt(c, ev){
+  var rc = c.getBoundingClientRect();
+  return {x:(ev.clientX-rc.left)*c.width/rc.width, y:(ev.clientY-rc.top)*c.height/rc.height};
+}
+
+/* ---------- scrubbing ----------
+   Seeks are queued, so dragging the slider never piles up requests. */
+var seekBusy = false, seekPending = null;
+function requestSeek(n){
+  if(seekBusy){ seekPending = n; return; }
+  seekBusy = true;
+  seekFrame(n, function(){
+    seekBusy = false;
+    if(seekPending !== null){ var p = seekPending; seekPending = null; requestSeek(p); }
+  });
+}
+var SCRUBS = ['scrubS','scrubA','scrubD'];
+function initScrubs(){
+  SCRUBS.forEach(function(id){
+    var s = $(id); if(!s) return;
+    s.min = 0; s.max = Math.max(0, frameCount-1); s.value = curFrame;
+  });
+}
+function syncScrubs(){
+  SCRUBS.forEach(function(id){
+    var s = $(id);
+    if(s && document.activeElement !== s) s.value = curFrame;
+  });
+}
+SCRUBS.forEach(function(id){
+  var s = document.getElementById(id);
+  if(s) s.addEventListener('input', function(){ requestSeek(parseInt(s.value,10)||0); });
+});
+
+/* ---------- exporting ----------
+   One file per trial, holding every click and everything needed to redo the
+   analysis or to renormalise a whole class of trials later. Stays on the device. */
+function csvSafe(v){
+  v = String(v == null ? '' : v);
+  return /[",\n]/.test(v) ? '"' + v.replace(/"/g,'""') + '"' : v;
+}
+function download(name, text){
+  try{
+    var b = new Blob([text], {type:'text/csv'});
+    var u = URL.createObjectURL(b);
+    var a = document.createElement('a');
+    a.href = u; a.download = name;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(u); }, 4000);
+  }catch(e){}
+}
+function buildCsv(){
+  var s = pxPerCm(), oh = overhangCm(), i;
+  var meta = [
+    ['what','oscillation analysis, all clicks'],
+    ['source_file', srcName],
+    ['filmed_at_fps', capFps()],
+    ['file_plays_at_fps', fileFps()],
+    ['slowdown_factor', fmt(slowFactor(),4)],
+    ['overhang_cm', oh || ''],
+    ['scale_pixels_per_cm', s ? fmt(s,4) : ''],
+    ['rest_marked', refRest ? 'yes' : 'no'],
+    ['clamp_marked', refClamp ? 'yes' : 'no'],
+    ['video_pixels', (V.videoWidth||'') + 'x' + (V.videoHeight||'')],
+    ['preview_pixels', $('overlay').width + 'x' + $('overlay').height],
+    ['turning_points_hz', results.turning ? fmt(results.turning.freq,4) : ''],
+    ['turning_points_period_s', results.turning ? fmt(1/results.turning.freq,6) : ''],
+    ['full_trace_hz', results.trace ? fmt(results.trace.freq,4) : ''],
+    ['full_trace_period_s', results.trace ? fmt(1/results.trace.freq,6) : '']
+  ];
+  var lines = meta.map(function(p){ return '# ' + p[0] + ',' + csvSafe(p[1]); });
+  lines.push('');
+
+  var head = ['source','frame','time_s','x_px','y_px','displacement_px'];
+  if(s) head.push('displacement_mm');
+  if(s && oh) head.push('displacement_as_share_of_overhang');
+  head.push('side');
+  lines.push(head.join(','));
+
+  function emit(source, list, sideOf){
+    if(!list.length) return;
+    var d = displacements(list);
+    for(var k=0;k<list.length;k++){
+      var row = [source, list[k].frame, fmt(list[k].t,6), r(list[k].x,2), r(list[k].y,2), r(d[k],3)];
+      if(s) row.push(fmt(d[k]/s*10,4));
+      if(s && oh) row.push(fmt(d[k]/s/oh,5));
+      row.push(sideOf ? sideOf(k,d) : '');
+      lines.push(row.map(csvSafe).join(','));
+    }
+  }
+
+  var refs = [];
+  if(refClamp) refs.push({frame:refClamp.frame, t:frameTime(refClamp.frame), x:refClamp.x, y:refClamp.y, tag:'clamped edge'});
+  if(refRest)  refs.push({frame:refRest.frame,  t:frameTime(refRest.frame),  x:refRest.x,  y:refRest.y,  tag:'tip at rest'});
+  emit('reference', refs, function(k){ return refs[k].tag; });
+  emit('turning_point', marks, function(k,d){ return d[k] >= 0 ? 'one' : 'other'; });
+  emit('trace_point', pts, null);
+
+  return lines.join('\n') + '\n';
+}
+$('expAll').onclick = function(){
+  if(!marks.length && !pts.length && !refClamp && !refRest) return;
+  var base = (srcName || 'clip').replace(/\.[^.]+$/,'').replace(/[^A-Za-z0-9_-]+/g,'-');
+  download('clicks-' + base + '.csv', buildCsv());
+};
+
+/* ---------- tabs ---------- */
+var stageFor = {pS:'stageS', pA:'stage', pD:'stageD'};
+Array.prototype.forEach.call(document.querySelectorAll('.tab'), function(t){
+  t.addEventListener('click', function(){
+    Array.prototype.forEach.call(document.querySelectorAll('.tab'), function(x){x.classList.remove('on');});
+    Array.prototype.forEach.call(document.querySelectorAll('.panel'), function(x){x.classList.remove('on');});
+    t.classList.add('on');
+    $(t.dataset.p).classList.add('on');
+    hostVideo(stageFor[t.dataset.p]);
+    drawFrames();
+  });
+});
+
+/* ================= A. turning points =================
+   Two reference marks do three jobs at once. The tip at rest is the zero to
+   measure from. The line from the clamped edge to the tip gives the direction the
+   ruler points, so the swing axis is exactly perpendicular to it rather than
+   guessed. And that same line is a known length, so it sets the scale, measured
+   in the very plane the tip sweeps through. */
+var marks = [], refClamp = null, refRest = null, clickMode = 'none';
+
+$('nx1').onclick = function(){ requestSeek(curFrame+1); };
+$('pv1').onclick = function(){ requestSeek(curFrame-1); };
+$('nx10').onclick = function(){ requestSeek(curFrame+10); };
+$('pv10').onclick = function(){ requestSeek(curFrame-10); };
+$('undo').onclick = function(){ marks.pop(); recomputeA(); };
+$('clearA').onclick = function(){ marks = []; recomputeA(); };
+$('markClamp').onclick = function(){ clickMode = 'clamp'; refNote(); };
+$('markRest').onclick = function(){ clickMode = 'rest'; refNote(); };
+$('ohLen').addEventListener('change', function(){ refNote(); recomputeA(); recomputeD(); });
+
+function overhangCm(){ var v = parseFloat($('ohLen').value); return (isFinite(v) && v > 0) ? v : 0; }
+function pxPerCm(){
+  if(!refClamp || !refRest || !overhangCm()) return 0;
+  var dx = refRest.x-refClamp.x, dy = refRest.y-refClamp.y;
+  var L = Math.sqrt(dx*dx + dy*dy);
+  return L > 8 ? L/overhangCm() : 0;
+}
+/* Unit vector along the ruler, and the perpendicular the tip actually travels along. */
+function swingNormal(){
+  if(!refClamp || !refRest) return null;
+  var dx = refRest.x-refClamp.x, dy = refRest.y-refClamp.y;
+  var L = Math.sqrt(dx*dx + dy*dy);
+  if(L < 8) return null;
+  return {x:-dy/L, y:dx/L};
+}
+
+function refNote(){
+  var host = $('refState'), s = pxPerCm();
+  var msg = [];
+  msg.push(refClamp ? 'clamped edge marked' : 'clamped edge not marked');
+  msg.push(refRest ? 'tip at rest marked' : 'tip at rest not marked');
+  var body = '<div class="kv"><span>' + msg.join('</span><span>') + '</span>' +
+    (s ? '<span>scale <b>' + fmt(s,1) + ' pixels per cm</b></span>' : '') + '</div>';
+  if(clickMode === 'clamp') body += '<div class="ok">Now click the edge the ruler is clamped against.</div>';
+  else if(clickMode === 'rest') body += '<div class="ok">Now click the tip of the ruler while it is still.</div>';
+  else if(!refRest) body += '<div class="warn">Mark the tip at rest before you go on. Without it the app has to guess the still position from the middle of your clicks, ' +
+    'which only works if you happen to click evenly on both sides.</div>';
+  else if(!s) body += '<div class="warn">Mark the clamped edge too, and check the overhang box, and the swing will come out in millimetres instead of pixels. ' +
+    'You can carry on without it, but your amplitudes will only be comparable within this one clip.</div>';
+  else body += '<div class="ok">Ready. Every swing will be measured from the cross, square to the dashed line, in millimetres. Move on to the Turning points tab.</div>';
+  host.innerHTML = body;
+}
+refNote();
+
+$('ovS').addEventListener('click', function(e){
+  var p = canvasPt($('ovS'), e);
+  if(clickMode === 'clamp'){ refClamp = {x:p.x, y:p.y, frame:curFrame}; }
+  else if(clickMode === 'rest'){ refRest = {x:p.x, y:p.y, frame:curFrame}; }
+  else return;
+  clickMode = 'none';
+  refNote(); drawRefs(); drawOverlayA(); recomputeA(); recomputeD();
+});
+$('clearRefs').onclick = function(){
+  refClamp = null; refRest = null; clickMode = 'none';
+  refNote(); drawRefs(); drawOverlayA(); recomputeA(); recomputeD();
+};
+
+$('overlay').addEventListener('click', function(e){
+  var p = canvasPt($('overlay'), e);
+  marks = marks.filter(function(q){ return q.frame !== curFrame; });
+  marks.push({frame:curFrame, t:frameTime(curFrame), x:p.x, y:p.y});
+  marks.sort(function(a,b){ return a.frame-b.frame; });
+  recomputeA();
+});
+
+function paintRefs(x){
+  if(refClamp && refRest){
+    x.strokeStyle = 'rgba(140,29,64,0.85)'; x.lineWidth = 2; x.setLineDash([6,4]);
+    x.beginPath(); x.moveTo(refClamp.x, refClamp.y); x.lineTo(refRest.x, refRest.y); x.stroke();
+    x.setLineDash([]);
+  }
+  if(refClamp){
+    x.strokeStyle = '#8C1D40'; x.lineWidth = 2;
+    x.strokeRect(refClamp.x-6, refClamp.y-6, 12, 12);
+  }
+  if(refRest){
+    x.strokeStyle = '#8C1D40'; x.lineWidth = 2;
+    x.beginPath();
+    x.moveTo(refRest.x-8, refRest.y); x.lineTo(refRest.x+8, refRest.y);
+    x.moveTo(refRest.x, refRest.y-8); x.lineTo(refRest.x, refRest.y+8);
+    x.stroke();
+  }
+}
+function drawRefs(){
+  var c = $('ovS'), x = c.getContext('2d');
+  x.clearRect(0,0,c.width,c.height);
+  paintRefs(x);
+}
+function drawOverlayA(){
+  var c = $('overlay'), x = c.getContext('2d');
+  x.clearRect(0,0,c.width,c.height);
+  paintRefs(x);
+  marks.forEach(function(m){
+    var here = m.frame === curFrame;
+    x.fillStyle = here ? '#1DB793' : 'rgba(27,36,80,0.5)';
+    x.beginPath(); x.arc(m.x, m.y, here ? 6 : 4, 0, 6.284); x.fill();
+  });
+}
+
+/* Signed displacement of every click, measured from the tip at rest,
+   along the direction the tip actually travels. */
+function displacements(list){
+  var n = swingNormal(), i;
+  if(n && refRest){
+    return list.map(function(m){ return (m.x-refRest.x)*n.x + (m.y-refRest.y)*n.y; });
+  }
+  var cx=0, cy=0;
+  list.forEach(function(m){ cx+=m.x; cy+=m.y; });
+  cx/=list.length; cy/=list.length;
+  var vx=0, vy=0;
+  list.forEach(function(m){ vx+=(m.x-cx)*(m.x-cx); vy+=(m.y-cy)*(m.y-cy); });
+  var horiz = vx >= vy;
+  var zx = refRest ? refRest.x : cx, zy = refRest ? refRest.y : cy;
+  return list.map(function(m){ return horiz ? (m.x-zx) : (m.y-zy); });
+}
+
+function recomputeA(){
+  drawOverlayA();
+  $('nmarks').textContent = marks.length;
+  var out = $('outA');
+  if(marks.length < 4){
+    clearGraphA('Click the object at four or more turning points and the motion will be drawn here.');
+    out.innerHTML = '<p class="note">Click the object at four or more turning points. More clicks give a better result.</p>';
+    delete results.turning; renderSummary(); return;
+  }
+
+  var i, d = displacements(marks);
+  var s = pxPerCm();
+  var toMm = s ? function(px){ return px/s*10; } : null;
+  var unit = toMm ? 'mm' : 'px';
+
+  var pos=[], neg=[];
+  for(i=0;i<marks.length;i++) (d[i] >= 0 ? pos : neg).push(i);
+
+  function fitSide(idx){
+    if(idx.length < 3) return null;
+    var ns=[], ts=[];
+    for(var k=0;k<idx.length;k++){ ns.push(k); ts.push(marks[idx[k]].t); }
+    return linfit(ns, ts);
+  }
+  var fp = fitSide(pos), fn = fitSide(neg);
+  var Ts=[], r2s=[], used=0;
+  if(fp){ Ts.push(fp.slope); r2s.push(fp.r2); used+=pos.length; }
+  if(fn){ Ts.push(fn.slope); r2s.push(fn.r2); used+=neg.length; }
+
+  var bothSides = pos.length >= 2 && neg.length >= 2;
+  var pre = '';
+
+  if(!Ts.length){
+    var ns=[], ts=[];
+    for(i=0;i<marks.length;i++){ ns.push(i); ts.push(marks[i].t); }
+    var f0 = linfit(ns, ts);
+    var alternates = true;
+    for(i=1;i<d.length;i++) if(d[i]*d[i-1] > 0) alternates = false;
+    Ts.push(alternates ? f0.slope*2 : f0.slope); r2s.push(f0.r2); used = marks.length;
+    pre += '<div class="warn">There are not yet three clicks on the same side, so the app has assumed your clicks alternate from one side to the other' +
+      (alternates ? ' and doubled the spacing to get a full swing' : '') + '. Add a few more clicks on one side to make this solid.</div>';
+  }
+
+  var T = Ts.reduce(function(a,b){return a+b;},0)/Ts.length;
+  var f = 1/T;
+  var r2 = r2s.reduce(function(a,b){return a+b;},0)/r2s.length;
+  var frPerCycle = T * capFps();
+
+  var html = '<div class="result"><div class="lbl">Frequency</div><div class="big">' + fmt(f,2) +
+    ' Hz</div><div class="kv" style="margin-top:8px"><span>Period <b>' + fmt(T,4) + ' s</b></span>' +
+    '<span>Clicks used <b>' + used + '</b></span>' +
+    '<span>Frames per cycle <b>' + fmt(frPerCycle,1) + '</b></span>' +
+    '<span>Straightness of fit <b>' + fmt(r2,4) + '</b></span></div></div>' + pre;
+
+
+  drawGraphA(marks, d, T, toMm, unit);
+
+  if(!refRest){
+    html += '<div class="warn">The still position was estimated from the middle of your clicks because the tip at rest is not marked. ' +
+      'Mark it and every amplitude below becomes a real distance from where the ruler actually sits.</div>';
+  }
+
+  if(bothSides){
+    html += '<div class="ok">You clicked ' + pos.length + ' turning points on one side and ' + neg.length +
+      ' on the other. The app timed each side separately and used a full swing either way, so the two sides act as a check on each other. ' +
+      'The periods came out ' + Ts.map(function(t){return fmt(t,4);}).join(' s and ') + ' s.</div>';
+    if(Ts.length === 2){
+      var diff = Math.abs(Ts[0]-Ts[1])/T*100;
+      if(diff > 6) html += '<div class="warn">Those two differ by ' + fmt(diff,0) +
+        ' percent, which is more than clicking error alone. Check that you have not missed a swing on one side.</div>';
+    }
+  }
+
+  if(frPerCycle < 6){
+    html += '<div class="warn">Only ' + fmt(frPerCycle,1) + ' frames fit into one cycle, which is too few to place a turning point reliably. ' +
+      'Use a longer overhang, or film at a higher frame rate.</div>';
+  }
+
+  var amps = d.map(Math.abs);
+  html += '<h3>Your clicks</h3><table><tr><th>Frame</th><th>Time, s</th><th>Side</th><th>How far out, ' + unit + '</th>' +
+    (s ? '<th>As a share of the overhang</th>' : '') + '</tr>';
+  for(i=0;i<marks.length;i++){
+    var a = toMm ? toMm(amps[i]) : amps[i];
+    html += '<tr><td class="num">' + marks[i].frame + '</td><td class="num">' + fmt(marks[i].t,4) +
+      '</td><td>' + (d[i] >= 0 ? 'one' : 'other') + '</td><td class="num">' + fmt(a, toMm ? 2 : 1) + '</td>' +
+      (s ? '<td class="num">' + fmt(amps[i]/s/overhangCm()*100,1) + ' %</td>' : '') + '</tr>';
+  }
+  html += '</table>';
+
+  var side = pos.length >= neg.length ? pos : neg;
+  if(side.length >= 3){
+    var a0 = amps[side[0]], a1 = amps[side[side.length-1]];
+    var gaps=[];
+    for(i=1;i<side.length;i++) gaps.push(marks[side[i]].t - marks[side[i-1]].t);
+    var gmin = Math.min.apply(null,gaps), gmax = Math.max.apply(null,gaps);
+    var spread = (gmax-gmin)/((gmax+gmin)/2)*100;
+    var drop = a0 > 0 ? (1-a1/a0)*100 : 0;
+    if(frPerCycle >= 10 && drop > 8){
+      html += '<div class="ok">On that side the swing shrank from <b>' + fmt(toMm ? toMm(a0) : a0, toMm ? 2 : 1) + ' ' + unit +
+        '</b> to <b>' + fmt(toMm ? toMm(a1) : a1, toMm ? 2 : 1) + ' ' + unit + '</b>, a drop of ' + fmt(drop,0) +
+        ' percent, while the time from one swing to the next changed by only <b>' + fmt(spread,0) +
+        ' percent</b>. Those two numbers together are the point of this whole measurement. Write both down.</div>';
+    }
+  }
+
+  out.innerHTML = html;
+  results.turning = {label:'Turning points, clicked by hand', freq:f,
+    extra: used + ' clicks' + (bothSides ? ', both sides' : ', one side') + ', fit ' + fmt(r2,4)};
+  renderSummary();
+}
+
+function clearGraphA(msg){
+  var c = $('graphA'), x = c.getContext('2d');
+  x.clearRect(0,0,c.width,c.height);
+  x.fillStyle = '#FAFAFA'; x.fillRect(0,0,c.width,c.height);
+  x.fillStyle = '#747474'; x.font = '13px Arial';
+  x.fillText(msg, 16, 30);
+}
+
+/* The turning points alone carry the whole shape: the spacing is the period and the
+   heights are the amplitude. Drawing the wave they imply makes both visible at once. */
+function drawGraphA(list, d, T, toMm, unit){
+  var c = $('graphA'), x = c.getContext('2d'), i;
+  x.clearRect(0,0,c.width,c.height);
+  x.fillStyle = '#FAFAFA'; x.fillRect(0,0,c.width,c.height);
+  var L=64, R=16, Tp=18, B=40, w=c.width-L-R, h=c.height-Tp-B;
+  var t0 = list[0].t, t1 = list[list.length-1].t;
+  if(t1 <= t0) return;
+  var amax = 0;
+  for(i=0;i<d.length;i++) amax = Math.max(amax, Math.abs(d[i]));
+  if(!amax) return;
+  amax *= 1.15;
+  var zy = Tp + h/2;
+  var px = function(t){ return L + (t-t0)/(t1-t0)*w; };
+  var py = function(v){ return zy - v/amax*(h/2); };
+
+  x.strokeStyle = '#D0D0D0'; x.lineWidth = 1;
+  x.beginPath(); x.moveTo(L,Tp); x.lineTo(L,Tp+h); x.lineTo(L+w,Tp+h); x.stroke();
+
+  /* the still position, which is now a measured line rather than an assumption */
+  x.strokeStyle = '#8C1D40'; x.lineWidth = 1.5; x.setLineDash([5,4]);
+  x.beginPath(); x.moveTo(L,zy); x.lineTo(L+w,zy); x.stroke(); x.setLineDash([]);
+  x.fillStyle = '#8C1D40'; x.font = '11px Arial';
+  x.fillText('at rest', L+4, zy-5);
+
+  /* Between any two consecutive turning points the ruler makes one half swing.
+     A half cosine joining them passes through both exactly and arrives at each
+     with zero slope, so consecutive pieces meet in both height and slope. That is
+     smooth by construction rather than by smoothing, and it goes through the
+     clicks instead of near them. */
+  var pos=[], neg=[];
+  for(i=0;i<d.length;i++) (d[i]>=0?pos:neg).push(i);
+
+  var nodes = [{t:list[0].t, d:d[0]}];
+  for(i=1;i<list.length;i++){
+    if(d[i-1]*d[i] > 0){
+      /* Both on the same side, so a turning point on the other side went unclicked.
+         Put it where it must have been, halfway between and the other way out. */
+      nodes.push({ t:(list[i-1].t+list[i].t)/2,
+                   d:-((Math.abs(d[i-1])+Math.abs(d[i]))/2) * (d[i-1] >= 0 ? 1 : -1) });
+    }
+    nodes.push({t:list[i].t, d:d[i]});
+  }
+
+  x.strokeStyle = 'rgba(29,183,147,0.9)'; x.lineWidth = 1.8;
+  x.beginPath();
+  for(var k=0;k<nodes.length-1;k++){
+    var ta=nodes[k].t, tb=nodes[k+1].t, da=nodes[k].d, db=nodes[k+1].d;
+    var mid=(da+db)/2, half=(da-db)/2;
+    var steps = Math.max(6, Math.round(px(tb)-px(ta)));
+    for(var q=0;q<=steps;q++){
+      var fr = q/steps;
+      var v = mid + half*Math.cos(Math.PI*fr);
+      var xx = px(ta + fr*(tb-ta)), yy = py(v);
+      if(k===0 && q===0) x.moveTo(xx,yy); else x.lineTo(xx,yy);
+    }
+  }
+  x.stroke();
+
+  /* the envelopes, which are the amplitude dying away */
+  [[pos,1],[neg,-1]].forEach(function(pair){
+    var idx=pair[0], sgn=pair[1];
+    if(idx.length<2) return;
+    x.strokeStyle = 'rgba(27,36,80,0.35)'; x.lineWidth = 1; x.setLineDash([3,3]);
+    x.beginPath();
+    for(var k=0;k<idx.length;k++){
+      var xx=px(list[idx[k]].t), yy=py(sgn*Math.abs(d[idx[k]]));
+      if(k===0) x.moveTo(xx,yy); else x.lineTo(xx,yy);
+    }
+    x.stroke(); x.setLineDash([]);
+  });
+
+  /* the clicks themselves */
+  for(i=0;i<d.length;i++){
+    x.fillStyle = '#1B2450';
+    x.beginPath(); x.arc(px(list[i].t), py(d[i]), 4, 0, 6.284); x.fill();
+  }
+
+  x.fillStyle = '#747474'; x.font = '11px Arial';
+  for(i=0;i<=5;i++){
+    var tv = t0 + (t1-t0)*i/5;
+    x.fillText(fmt(tv,3), px(tv)-14, Tp+h+18);
+  }
+  x.fillText('Time, s', L+w/2-18, Tp+h+32);
+  var top = toMm ? toMm(amax) : amax;
+  x.fillText('+' + fmt(top, toMm?1:0) + ' ' + unit, 6, Tp+10);
+  x.fillText('-' + fmt(top, toMm?1:0) + ' ' + unit, 6, Tp+h-2);
+  x.save(); x.translate(18, zy+40); x.rotate(-Math.PI/2);
+  x.fillText('How far from rest', 0, 0); x.restore();
+  x.fillStyle = '#1DB793';
+  x.fillText('the swing your clicks imply', L+w-150, Tp+12);
+}
+
+/* ================= D. full trace ================= */
+var pts = [];
+var ovD = $('ovD');
+ovD.addEventListener('click', function(e){
+  var p = canvasPt(ovD, e);
+  pts = pts.filter(function(q){ return q.frame !== curFrame; });
+  pts.push({frame:curFrame, t:frameTime(curFrame), x:p.x, y:p.y});
+  pts.sort(function(a,b){return a.frame-b.frame;});
+  seekFrame(curFrame+1, recomputeD);
+});
+$('dNext').onclick = function(){ requestSeek(curFrame+1); };
+$('dPrev').onclick = function(){ requestSeek(curFrame-1); };
+$('dUndo').onclick = function(){ pts.pop(); recomputeD(); drawOverlayD(); };
+$('clearD').onclick = function(){ pts = []; recomputeD(); drawOverlayD(); };
+document.addEventListener('keydown', function(e){
+  if(!$('pD').classList.contains('on')) return;
+  if(e.key === 'ArrowRight'){ e.preventDefault(); requestSeek(curFrame+1); }
+  if(e.key === 'ArrowLeft'){ e.preventDefault(); requestSeek(curFrame-1); }
+});
+
+function drawOverlayD(){
+  var c = ovD, x = c.getContext('2d');
+  x.clearRect(0,0,c.width,c.height);
+  pts.forEach(function(p){
+    var here = p.frame === curFrame;
+    x.fillStyle = here ? '#1DB793' : 'rgba(27,36,80,0.45)';
+    x.beginPath(); x.arc(p.x, p.y, here ? 5 : 3, 0, 6.284); x.fill();
+  });
+}
+
+function recomputeD(){
+  drawOverlayD();
+  $('dn').textContent = pts.length;
+  var tc = $('traceCv'), tx = tc.getContext('2d');
+  tx.clearRect(0,0,tc.width,tc.height);
+  tx.fillStyle = '#FAFAFA'; tx.fillRect(0,0,tc.width,tc.height);
+  var out = $('outD');
+  if(pts.length < 8){
+    tx.fillStyle = '#747474'; tx.font = '13px Arial';
+    tx.fillText('Keep clicking. The motion will start to appear here after about eight frames.', 16, 30);
+    out.innerHTML = '';
+    delete results.trace; renderSummary(); return;
+  }
+
+  /* Same reference marks and scale as the turning points tab. */
+  var i, s = pxPerCm(), useM = s > 0;
+  var dRaw = displacements(pts);
+  var ts = [], ds = [];
+  for(i=0;i<pts.length;i++){ ts.push(pts[i].t); ds.push(useM ? dRaw[i]/s*10 : dRaw[i]); }
+
+  /* Time the swing from where it crosses the rest line, not from where it peaks.
+     A peak is flat, so two neighbouring clicks near the top can both look like the
+     highest point and get counted twice. A crossing is the steepest part of the
+     motion, where a click that is a pixel off barely moves the time at all. */
+  var amaxAll = 0;
+  for(i=0;i<ds.length;i++) amaxAll = Math.max(amaxAll, Math.abs(ds[i]));
+  var floor = amaxAll * 0.12;
+
+  function crossings(rising){
+    var out = [];
+    for(i=0;i<ds.length-1;i++){
+      var a = ds[i], b = ds[i+1];
+      var hit = rising ? (a < 0 && b >= 0) : (a > 0 && b <= 0);
+      if(!hit || b === a) continue;
+      var span = Math.max(Math.abs(a), Math.abs(b));
+      if(span < floor) continue;
+      out.push(ts[i] + (ts[i+1]-ts[i]) * (0-a)/(b-a));
+    }
+    return out;
+  }
+  var up = crossings(true), down = crossings(false);
+
+  function fitCross(list){
+    if(list.length < 3) return null;
+    var ns=[], tt=[];
+    for(var k=0;k<list.length;k++){ ns.push(k); tt.push(list[k]); }
+    return linfit(ns, tt);
+  }
+  var fu = fitCross(up), fd = fitCross(down);
+  var Tlist = [], r2list = [];
+  if(fu){ Tlist.push(fu.slope); r2list.push(fu.r2); }
+  if(fd){ Tlist.push(fd.slope); r2list.push(fd.r2); }
+  var fTrace = NaN, Ttrace = NaN, fit = null;
+  if(Tlist.length){
+    Ttrace = Tlist.reduce(function(a,b){return a+b;},0)/Tlist.length;
+    fTrace = 1/Ttrace;
+    fit = {r2: r2list.reduce(function(a,b){return a+b;},0)/r2list.length};
+  }
+
+  /* Amplitude comes from the largest displacement inside each half swing,
+     which is well defined even when the clicks scatter. */
+  var bounds = up.concat(down).sort(function(a,b){return a-b;});
+  var swings = [];
+  for(i=0;i<bounds.length-1;i++){
+    var lo = bounds[i], hi = bounds[i+1], best = null;
+    for(var k=0;k<ts.length;k++){
+      if(ts[k] < lo || ts[k] > hi) continue;
+      if(best === null || Math.abs(ds[k]) > Math.abs(ds[best])) best = k;
+    }
+    if(best !== null && Math.abs(ds[best]) >= floor) swings.push(best);
+  }
+  var sameSide = swings.filter(function(k){ return ds[k] > 0; });
+
+  /* plot */
+  var L = 58, R = 14, Tp = 16, B = 36;
+  var w = tc.width-L-R, h = tc.height-Tp-B;
+  var t0 = ts[0], t1 = ts[ts.length-1];
+  var amax = 0;
+  ds.forEach(function(d){ amax = Math.max(amax, Math.abs(d)); });
+  amax = amax || 1;
+  tx.strokeStyle = '#D0D0D0'; tx.lineWidth = 1;
+  tx.beginPath(); tx.moveTo(L,Tp); tx.lineTo(L,Tp+h); tx.lineTo(L+w,Tp+h); tx.stroke();
+  var zy = Tp + h/2;
+  tx.strokeStyle = '#D0D0D0'; tx.setLineDash([3,3]);
+  tx.beginPath(); tx.moveTo(L,zy); tx.lineTo(L+w,zy); tx.stroke(); tx.setLineDash([]);
+  var px = function(t){ return L + (t-t0)/(t1-t0||1)*w; };
+  var py = function(d){ return zy - d/amax*(h/2)*0.92; };
+  tx.strokeStyle = '#1B2450'; tx.lineWidth = 1.6; tx.beginPath();
+  for(i=0;i<ts.length;i++){ if(i===0) tx.moveTo(px(ts[i]),py(ds[i])); else tx.lineTo(px(ts[i]),py(ds[i])); }
+  tx.stroke();
+  tx.fillStyle = '#1B2450';
+  for(i=0;i<ts.length;i++){ tx.beginPath(); tx.arc(px(ts[i]),py(ds[i]),2,0,6.284); tx.fill(); }
+  tx.fillStyle = '#1DB793';
+  sameSide.forEach(function(k){ tx.beginPath(); tx.arc(px(ts[k]),py(ds[k]),4.5,0,6.284); tx.fill(); });
+  tx.fillStyle = '#747474'; tx.font = '11px Arial';
+  for(i=0;i<=5;i++){
+    var tv = t0 + (t1-t0)*i/5;
+    tx.fillText(fmt(tv,3), px(tv)-14, Tp+h+18);
+  }
+  tx.fillText('Time, s', L+w/2-18, Tp+h+31);
+  tx.fillText(useM ? '+' + fmt(amax,1) + ' mm' : '+' + r(amax,0) + ' px', 6, Tp+10);
+  tx.fillText(useM ? '-' + fmt(amax,1) + ' mm' : '-' + r(amax,0) + ' px', 6, Tp+h-2);
+  tx.save(); tx.translate(16, zy+34); tx.rotate(-Math.PI/2);
+  tx.fillText('Displacement', 0, 0); tx.restore();
+
+  var html = '';
+  if(isFinite(fTrace)){
+    var swingsCovered = (up.length + down.length) / 2;
+    html += '<div class="result"><div class="lbl">Frequency from the trace</div><div class="big">' + fmt(fTrace,2) +
+      ' Hz</div><div class="kv" style="margin-top:8px"><span>Period <b>' + fmt(Ttrace,4) + ' s</b></span>' +
+      '<span>Points <b>' + pts.length + '</b></span>' +
+      '<span>Swings covered <b>' + fmt(swingsCovered,1) + '</b></span>' +
+      '<span>Straightness of fit <b>' + fmt(fit.r2,4) + '</b></span></div></div>';
+    if(swingsCovered < 3){
+      html += '<div class="note" style="font-size:13px;color:var(--gray)">You have about ' + fmt(swingsCovered,1) +
+        ' swings so far. Three or four is enough to see the shape clearly and to time it well. Keep clicking forward.</div>';
+    }
+    if(Tlist.length === 2){
+      var dif = Math.abs(Tlist[0]-Tlist[1])/Ttrace*100;
+      html += '<div class="ok">The app timed the swing twice over, once from every crossing of the rest line going one way and once going the other. ' +
+        'The two came out ' + Tlist.map(function(t){return fmt(t,4);}).join(' s and ') + ' s, ' + fmt(dif,1) + ' percent apart. ' +
+        'They use different clicks, so agreement is a check on your clicking.</div>';
+    }
+    if(fit.r2 < 0.99){
+      html += '<div class="warn">The crossings are not falling evenly in time, which usually means a few clicks landed off the object ' +
+        'or a stretch of frames got skipped. Look for a point in the graph above that sits away from the line of the others.</div>';
+    }
+    results.trace = {label:'Full trace of the motion', freq:fTrace,
+      extra: pts.length + ' points, ' + (up.length+down.length) + ' crossings'};
+  } else {
+    html += '<p class="note">Keep clicking. The app needs the object to cross its rest position at least three times before it can work out the period.</p>';
+    delete results.trace;
+  }
+
+  if(sameSide.length >= 3){
+    html += '<h3>Each swing on the same side</h3><table><tr><th>Swing</th><th>Time, s</th><th>How far out' +
+      (useM ? ', mm' : ', px') + '</th><th>Gap since last, s</th></tr>';
+    for(i=0;i<sameSide.length;i++){
+      var k = sameSide[i];
+      var gap = i>0 ? ts[k]-ts[sameSide[i-1]] : NaN;
+      html += '<tr><td class="num">' + (i+1) + '</td><td class="num">' + fmt(ts[k],4) + '</td><td class="num">' +
+        (useM ? fmt(ds[k],2) : r(ds[k],1)) + '</td><td class="num">' + (i>0 ? fmt(gap,4) : '-') + '</td></tr>';
+    }
+    html += '</table>';
+    var first = Math.abs(ds[sameSide[0]]), last = Math.abs(ds[sameSide[sameSide.length-1]]);
+    var gaps = [];
+    for(i=1;i<sameSide.length;i++) gaps.push(ts[sameSide[i]] - ts[sameSide[i-1]]);
+    if(gaps.length >= 2){
+      var gmin = Math.min.apply(null, gaps), gmax = Math.max.apply(null, gaps);
+      var spread = (gmax-gmin)/((gmax+gmin)/2)*100;
+      var drop = first>0 ? (1-last/first)*100 : 0;
+      var fpc = isFinite(Ttrace) ? Ttrace*capFps() : 0;
+      if(fpc >= 10){
+        html += '<div class="ok">Across this clip the swing got <b>' + fmt(drop,0) +
+          ' percent smaller</b>, while the time from one swing to the next changed by <b>' + fmt(spread,0) +
+          ' percent</b>. Those two numbers are the point of this graph. Write both of them down.</div>';
+      } else {
+        html += '<div class="warn">The swing got <b>' + fmt(drop,0) + ' percent smaller</b> across this clip, ' +
+          'but only ' + fmt(fpc,1) + ' frames fit into one cycle here, so the app cannot tell you reliably whether the ' +
+          'timing stayed the same. With this few frames the furthest point of a swing falls between two frames and you ' +
+          'never see it. Use a longer overhang or a higher frame rate for this graph, and keep at least ten frames per cycle.</div>';
+      }
+    }
+  }
+  out.innerHTML = html;
+  renderSummary();
+}
+
+/* ================= summary ================= */
+function renderSummary(){
+  var keys = Object.keys(results);
+  var host = $('summary');
+  if(!keys.length){ host.innerHTML = '<p class="note">No measurements yet.</p>'; return; }
+  var html = '<table><tr><th>Method</th><th>Frequency, Hz</th><th>Period, s</th><th>Notes</th></tr>';
+  keys.forEach(function(k){
+    var r0 = results[k];
+    html += '<tr><td>' + r0.label + '</td><td class="num">' + fmt(r0.freq,2) + '</td><td class="num">' +
+      fmt(1/r0.freq,4) + '</td><td>' + r0.extra + '</td></tr>';
+  });
+  html += '</table>';
+
+
+  if(keys.length >= 2){
+    var picture = keys.slice();
+    var i, j;
+
+    /* Picture methods measure the swing, so they should agree with each other. */
+    if(picture.length >= 2){
+      var notes = [];
+      for(i=0;i<picture.length;i++) for(j=i+1;j<picture.length;j++){
+        var A = results[picture[i]], B = results[picture[j]];
+        var lo = Math.min(A.freq,B.freq), hi = Math.max(A.freq,B.freq);
+        var loName = A.freq < B.freq ? A.label : B.label;
+        var hiName = A.freq < B.freq ? B.label : A.label;
+        var spread = (hi-lo)/((hi+lo)/2)*100, ratio = hi/lo;
+        if(spread <= 5){
+          notes.push({rank:0, full:'<div class="ok"><b>' + loName + ' and ' + hiName + ' agree</b> to within ' +
+            fmt(spread,1) + ' percent. Both read the swing off the picture but in different ways, so agreement is a real check on your clicking.</div>'});
+        } else if(Math.abs(ratio-2) < 0.12){
+          notes.push({rank:1, full:'<div class="warn"><b>' + hiName + ' is almost exactly double ' + loName +
+            '.</b> One of them is timing half a swing rather than a whole one. Check that you clicked the object itself each time, not just the frame.</div>'});
+        } else {
+          notes.push({rank:2, full:'<div class="warn"><b>' + loName + ' and ' + hiName + ' disagree by ' + fmt(spread,0) +
+            ' percent.</b> Check the frame rate boxes in step one first, since everything depends on them, then check for a swing you missed.</div>'});
+        }
+      }
+      notes.sort(function(a,b){ return a.rank-b.rank; });
+      html += notes[0].full;
+    }
+
+  }
+  host.innerHTML = html;
+}
+
+$('copy').onclick = function(){
+  var keys = Object.keys(results);
+  var lines = ['Oscillation analysis results', ''];
+  lines.push('Filmed at: ' + capFps() + ' fps');
+  lines.push('File plays at: ' + fileFps() + ' fps');
+  lines.push('Saved slowed down by: ' + fmt(slowFactor(),2) + ' times');
+  keys.forEach(function(k){
+    lines.push(results[k].label + ': ' + fmt(results[k].freq,2) + ' Hz, period ' + fmt(1/results[k].freq,4) + ' s (' + results[k].extra + ')');
+  });
+  var txt = lines.join('\n');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(function(){ $('copy').textContent = 'Copied'; setTimeout(function(){ $('copy').textContent = 'Copy results'; }, 1600); });
+  } else {
+    var ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    $('copy').textContent = 'Copied'; setTimeout(function(){ $('copy').textContent = 'Copy results'; }, 1600);
+  }
+};
+
+function resetData(){
+  marks = []; pts = []; results = {}; refClamp = null; refRest = null; clickMode = 'none';
+  probeState = 'none'; blankStrikes = 0; seekToken++;
+  $('blanknote').innerHTML = '';
+  $('outA').innerHTML = ''; $('outD').innerHTML = '';
+  if(typeof refNote === 'function') refNote();
+  clearGraphA('Click the object at four or more turning points and the motion will be drawn here.');
+  $('slowreport').innerHTML = ''; $('fpsreport').innerHTML = '';
+  $('fpsauto').textContent = 'checking the file';
+  $('nmarks').textContent = '0'; $('dn').textContent = '0';
+  renderSummary();
+}
+$('diagBtn').onclick = function(){
+  var host = $('diag');
+  if(host.innerHTML){ host.innerHTML = ''; $('diagBtn').textContent = 'Show technical details'; return; }
+  $('diagBtn').textContent = 'Hide technical details';
+  var drew = 'not tested', alphaSeen = false;
+  try{
+    var t = document.createElement('canvas'); t.width = 16; t.height = 16;
+    var tx = t.getContext('2d', {willReadFrequently:true});
+    tx.clearRect(0,0,16,16); tx.drawImage(V,0,0,16,16);
+    var d = tx.getImageData(0,0,16,16).data, i, mn=255, mx=0;
+    for(i=3;i<d.length;i+=4) if(d[i] !== 0){ alphaSeen = true; break; }
+    for(i=0;i<d.length;i+=4){ if(d[i]<mn) mn=d[i]; if(d[i]>mx) mx=d[i]; }
+    drew = alphaSeen ? ('yes, brightness range ' + mn + ' to ' + mx) : 'no, every pixel came back empty';
+  }catch(e){ drew = 'blocked: ' + e.name; }
+  var lines = [
+    'browser            ' + navigator.userAgent,
+    'video ready state  ' + V.readyState + ' of 4',
+    'network state      ' + V.networkState,
+    'video size         ' + V.videoWidth + ' by ' + V.videoHeight,
+    'element size       ' + V.style.width + ' by ' + V.style.height,
+    'video parent       ' + (V.parentNode ? V.parentNode.id || V.parentNode.tagName : 'none'),
+    'file duration      ' + fmt(duration,4) + ' s',
+    'current time       ' + fmt(V.currentTime,4) + ' s',
+    'paused             ' + V.paused,
+    'frame callback     ' + (V.requestVideoFrameCallback ? 'available' : 'NOT available'),
+    'probe state        ' + probeState,
+    'file fps           ' + fileFps(),
+    'capture fps        ' + capFps(),
+    'slowdown           ' + fmt(slowFactor(),4),
+    'frame count        ' + frameCount,
+    'current frame      ' + curFrame,
+    'overlay size       ' + $('overlay').width + ' by ' + $('overlay').height,
+    'pixels readable    ' + drew,
+    'marks / points     ' + marks.length + ' / ' + pts.length
+  ];
+  host.innerHTML = '<div class="diag">' + lines.join('\n').replace(/[<>&]/g,'') + '</div>';
+};
+
+$('resetAll').onclick = function(){ resetData(); location.reload(); };
+</script>
+</body>
+</html>
