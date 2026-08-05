@@ -28,7 +28,6 @@
   }
   a{color:var(--navy)}
   .wrap{max-width:1180px;margin:0 auto;padding:0 20px 64px}
-
   /* Masthead - matches the tools */
   header.mast{
     background:var(--navy);
@@ -42,16 +41,13 @@
     font-family:var(--data);font-size:11px;color:var(--navy);
     background:var(--teal);padding:5px 9px;border-radius:2px;
   }
-
   .panel{background:var(--white);border:1px solid var(--rule);margin-top:20px}
   .panel > h2{
     margin:0;padding:9px 14px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
     color:var(--white);background:var(--navy);font-weight:bold;
   }
   .panel .body{padding:14px}
-
   .lede{font-size:15px;color:var(--ink);margin:0;padding:14px;border-bottom:1px solid var(--rule);background:var(--card)}
-
   /* Tool rows */
   .tool{
     display:grid;
@@ -79,19 +75,16 @@
     .tool{grid-template-columns:1fr;gap:8px}
     .open{justify-self:start}
   }
-
   .empty{
     font-size:13px;color:var(--navy);background:var(--card);
     border-left:3px solid var(--teal);padding:9px 11px;margin:0;
   }
-
   .kv{font-family:var(--data);font-size:13px;color:var(--navy)}
   footer.foot{border-top:1px solid var(--rule);margin-top:28px;padding-top:14px;font-size:12px;color:var(--muted)}
   @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
-
 <header class="mast">
   <div class="mast-in">
     <div>
@@ -101,19 +94,15 @@
     <div class="privacy">Runs on your device. Nothing is uploaded.</div>
   </div>
 </header>
-
 <div class="wrap">
-
   <div class="panel">
     <h2>Tools</h2>
     <p class="lede">Bookmark this page. Tools get added here through the year, so the link never changes.</p>
-
     <!-- ================================================================
          TO ADD A TOOL: copy one <div class="tool"> block below and edit
          the four parts - course tag, name, one-line description, and the
          href, which is just the folder name plus a slash.
          ================================================================ -->
-
     <div class="tool">
       <div class="course">Physics</div>
       <div>
@@ -122,7 +111,6 @@
       </div>
       <a class="open" href="motion-analysis/">Open</a>
     </div>
-
     <div class="tool">
       <div class="course">Physics</div>
       <div>
@@ -131,9 +119,15 @@
       </div>
       <a class="open" href="oscillation-analysis/">Open</a>
     </div>
-
+    <div class="tool">
+      <div class="course">Biology</div>
+      <div>
+        <h3>One by One</h3>
+        <p>For the hatch and survival counts in <em>What Decides How Many Brine Shrimp Survive?</em>. Photograph your tray and tap each nauplius, or film a few seconds and let the tool find the swimmers for you to check.</p>
+      </div>
+      <a class="open" href="brine-shrimp-counter/">Open</a>
+    </div>
   </div>
-
   <div class="panel">
     <h2>Before you film</h2>
     <div class="body">
@@ -141,12 +135,10 @@
       <p style="font-size:13px;color:var(--muted);margin:10px 0 0">If a clip will not load, it is almost always recorded in HEVC. On iPhone open Settings, then Camera, then Formats, and choose Most Compatible. On Android turn off high efficiency video in the camera app settings, then film the trial again.</p>
     </div>
   </div>
-
   <footer class="foot">
     These tools read your file straight into the page on your own device. Nothing is uploaded, stored, or sent anywhere,
     so your clips stay on your phone or laptop. Trouble with a tool goes to Mr Wolcott.
   </footer>
 </div>
-
 </body>
 </html>
