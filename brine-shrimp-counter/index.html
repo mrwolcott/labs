@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Brine Shrimp Counter</title>
+<style>
+  :root{
+    --navy:#1B2450;
+    --teal:#1DB793;
+    --gray1:#191919;
+    --gray:#747474;
+    --gray5:#D0D0D0;
+    --gray6:#E8E8E8;
+    --gray7:#FAFAFA;
+    --white:#FFFFFF;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;background:var(--gray6);color:var(--gray1);
+    font-family:Arial,Helvetica,sans-serif;overscroll-behavior:none;}
+  header{background:var(--navy);color:var(--white);padding:10px 14px 8px;
+    border-bottom:4px solid var(--teal);}
+  header h1{margin:0;font-size:18px;font-weight:bold;letter-spacing:.2px;}
+  header .sub{font-size:11px;color:#c9cfe6;margin-top:2px;letter-spacing:.4px;text-transform:uppercase;}
+  .wrap{max-width:820px;margin:0 auto;padding:10px;}
+  .panel{background:var(--white);border:1px solid var(--gray5);border-radius:10px;
+    padding:10px;margin-bottom:10px;}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .row + .row{margin-top:8px;}
+  label.lbl{font-size:12px;color:var(--gray);font-weight:bold;text-transform:uppercase;letter-spacing:.4px;}
+  button{font-family:inherit;font-size:15px;font-weight:bold;border:none;border-radius:8px;
+    padding:11px 14px;cursor:pointer;background:var(--gray6);color:var(--navy);border:1px solid var(--gray5);}
+  button:active{transform:translateY(1px);}
+  button.primary{background:var(--teal);color:var(--white);border-color:var(--teal);}
+  button.navy{background:var(--navy);color:var(--white);border-color:var(--navy);}
+  button.ghost{background:var(--white);}
+  button:disabled{opacity:.45;cursor:not-allowed;}
+  .seg{display:inline-flex;border:1px solid var(--navy);border-radius:8px;overflow:hidden;}
+  .seg button{border:none;border-radius:0;background:var(--white);color:var(--navy);
+    padding:10px 14px;font-size:14px;}
+  .seg button.on{background:var(--navy);color:var(--white);}
+  input[type=number]{font-family:inherit;font-size:16px;width:84px;padding:9px;border:1px solid var(--gray5);
+    border-radius:8px;text-align:center;}
+  .stage{position:relative;background:var(--navy);border-radius:10px;overflow:hidden;
+    touch-action:none;height:56vh;min-height:300px;border:1px solid var(--gray5);}
+  .stage canvas{position:absolute;top:0;left:0;width:100%;height:100%;display:block;}
+  .empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    color:#c9cfe6;font-size:14px;text-align:center;padding:24px;gap:6px;}
+  .toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+  .toolbar button{padding:9px 11px;font-size:13px;}
+  .count-wrap{display:flex;align-items:stretch;gap:10px;margin-top:10px;}
+  .count-box{flex:1;background:var(--navy);color:var(--white);border-radius:10px;padding:10px 12px;text-align:center;}
+  .count-box .big{font-size:40px;font-weight:bold;line-height:1;}
+  .count-box .cap{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#c9cfe6;margin-top:4px;}
+  .count-box.teal{background:var(--teal);}
+  .count-box.teal .cap{color:#eafaf5;}
+  .hint{font-size:12.5px;color:var(--gray);line-height:1.5;margin-top:8px;}
+  .hint b{color:var(--navy);}
+  .legend{display:flex;gap:14px;font-size:12px;color:var(--gray);margin-top:8px;align-items:center;flex-wrap:wrap;}
+  .dot{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:-1px;margin-right:4px;}
+  .dot.manual{background:#ffd23f;border:2px solid var(--navy);}
+  .dot.auto{background:var(--teal);border:2px solid var(--white);box-shadow:0 0 0 1px var(--teal);}
+  details{margin-top:2px;}
+  summary{cursor:pointer;font-size:13px;font-weight:bold;color:var(--navy);padding:6px 0;}
+  details p, details li{font-size:13px;color:var(--gray1);line-height:1.55;}
+  details ul{margin:4px 0 4px 18px;padding:0;}
+  .regions{font-size:12.5px;color:var(--gray);margin-top:8px;}
+  .regions span{color:var(--navy);font-weight:bold;}
+  .tag{display:inline-block;background:var(--gray6);border:1px solid var(--gray5);border-radius:20px;
+    padding:2px 10px;font-size:12px;color:var(--navy);margin:2px 4px 2px 0;}
+  .mode-help{font-size:12.5px;color:var(--gray);margin-top:6px;min-height:16px;}
+  footer{font-size:11px;color:var(--gray);text-align:center;padding:14px 10px 30px;}
+  .warnbar{background:#fff6d6;border:1px solid #f0d98a;color:#5a4a13;border-radius:8px;
+    padding:8px 10px;font-size:12.5px;margin-top:8px;display:none;}
+  .tips{background:#eafaf5;border:1px solid #b6e6d8;border-left:4px solid var(--teal);
+    border-radius:8px;padding:10px 12px;margin:0 0 10px;font-size:12.5px;color:var(--navy);line-height:1.5;}
+  .tips .th{font-weight:bold;letter-spacing:.3px;}
+  .tips ul{margin:6px 0 0 16px;padding:0;}
+  .tips li{margin:3px 0;}
+  .tips b{color:var(--navy);}
+</style>
+</head>
+<body>
+<header>
+  <h1>Brine Shrimp Counter</h1>
+  <div class="sub">Biology &middot; Counting aid</div>
+</header>
+
+<div class="wrap">
+
+  <div class="panel">
+    <div class="row" style="justify-content:space-between">
+      <div class="row" style="gap:8px">
+        <span class="lbl">Counting</span>
+        <div class="seg" id="modeSeg">
+          <button data-mode="cysts" class="on">Cysts</button>
+          <button data-mode="nauplii">Nauplii &middot; photo</button>
+          <button data-mode="motion">Nauplii &middot; video</button>
+        </div>
+      </div>
+      <div class="row" style="gap:6px">
+        <span class="lbl">Target</span>
+        <input type="number" id="target" value="100" min="1" max="2000" step="1">
+      </div>
+    </div>
+    <div class="mode-help" id="modeHelp"></div>
+  </div>
+
+  <div class="tips" id="motionTips" style="display:none">
+    <div class="th">Before you record the video</div>
+    <ul>
+      <li><b>Set the format so the clip will open.</b> On an iPhone: Settings, then Camera, then Formats, and choose <b>Most Compatible</b>. Otherwise the video may record as HEVC, which many browsers cannot read.</li>
+      <li><b>Hold the phone still.</b> Brace it or rest it on something. Let the poured tray settle for about twenty seconds so the water stops drifting and only the shrimp are moving.</li>
+      <li><b>Record about five seconds straight down,</b> with the whole tray in the frame and good, even light.</li>
+    </ul>
+  </div>
+
+  <div class="panel">
+    <div class="stage" id="stage">
+      <canvas id="canvas"></canvas>
+      <div class="empty" id="empty">
+        <div id="emptyTitle" style="font-size:15px;font-weight:bold;color:#eafaf5">Add a photo to begin</div>
+        <div id="emptySub">Take or choose a photo of your specimens, then tap each one to count it.</div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <button class="navy" id="addPhoto">Add / take photo</button>
+      <button id="zoomIn" disabled>Zoom +</button>
+      <button id="zoomOut" disabled>Zoom &minus;</button>
+      <button id="fit" disabled>Fit</button>
+      <button class="primary" id="detect" disabled>Assist: find the rest</button>
+      <button class="ghost" id="undo" disabled>Undo</button>
+      <button class="ghost" id="clear" disabled>Clear marks</button>
+    </div>
+
+    <div class="warnbar" id="warn"></div>
+
+    <div class="count-wrap">
+      <div class="count-box"><div class="big" id="photoCount">0</div><div class="cap">this photo</div></div>
+      <div class="count-box teal"><div class="big" id="totalCount">0</div><div class="cap">total count</div></div>
+    </div>
+
+    <div class="regions" id="regions" style="display:none"></div>
+    <div class="toolbar" id="tileRow" style="display:none">
+      <button class="ghost" id="bank">Save this photo &amp; start another (add together)</button>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot manual"></span>you tapped</span>
+      <span><span class="dot auto"></span>assist added &mdash; check these</span>
+    </div>
+
+    <div class="hint" id="targetHint"></div>
+  </div>
+
+  <div class="panel">
+    <details>
+      <summary>How to use this</summary>
+      <p><b>Cysts (setup):</b> spread your cysts on a light surface, photograph straight down, and tap each one. Adjust until the total reaches your target, then add exactly that many to the jar.</p>
+      <p><b>Nauplii &middot; photo:</b> pour the whole jar into a wide shallow tray so the shrimp spread into a thin single layer, photograph straight down, and tap each swimming shrimp. If one photo cannot show the whole tray clearly, photograph it in halves and use <b>Save this photo &amp; start another</b> so the halves add together.</p>
+      <p><b>Nauplii &middot; video (motion):</b> brace your phone, let the poured tray settle for about twenty seconds so the water stops drifting, then record about five seconds straight down. The tool keeps the objects that swim and ignores the ones that stay still, which are cysts, empty shells, dead shrimp, and yeast, then marks the swimmers for you to check the same way. Video is the more reliable count when the phone is steady and the water has settled. If a clip will not load, it is almost always an iPhone recording in HEVC: set Settings, Camera, Formats to Most Compatible and record it again. This mode is a first prototype and its sensitivity will be tuned once real footage exists.</p>
+      <p><b>The assist:</b> tap five to ten specimens yourself first, then press <b>Assist: find the rest</b>. The tool learns their color and size from your taps and marks others like them in teal. Teal marks are guesses, so check every one: tap a wrong mark to remove it, tap a missed shrimp to add it. The final number is yours, not the tool's.</p>
+      <ul>
+        <li>Tap an empty spot to add a mark. Tap a mark to remove it.</li>
+        <li>Drag to move the photo. Pinch, scroll, or use Zoom to get in close on crowded spots.</li>
+        <li>Good light and a plain background make both your count and the assist far more reliable.</li>
+      </ul>
+      <p>This tool only counts. It does not calculate percentages or tell you whether your number is right. Enter the total in your lab report yourself.</p>
+    </details>
+  </div>
+
+  <footer>Khan World School @ ASU Prep &middot; Biology</footer>
+</div>
+
+<input type="file" id="file" accept="image/*" style="display:none">
+
+<script>
+/* ============================================================
+   Brine Shrimp Counter
+   Single-file counting aid. Manual tap-tally is the spine;
+   a per-photo calibrated detector is an optional cross-check.
+   No external dependencies. No storage APIs.
+   ============================================================ */
+
+const state = {
+  mode: 'cysts',
+  img: null,            // HTMLImageElement (display, full res)
+  work: null,           // {data,width,height} downscaled ImageData for detection
+  workScale: 1,         // work px per image px
+  view: {scale:1, x:0, y:0, min:1},
+  markers: [],          // {x,y,auto} in IMAGE coordinates
+  history: [],          // marker-array snapshots for undo
+  banked: [],           // saved per-photo counts (integers)
+};
+
+const $ = id => document.getElementById(id);
+const canvas = $('canvas'), ctx = canvas.getContext('2d');
+const stage = $('stage');
+
+/* ---------- mode + target ---------- */
+const MODE_HELP = {
+  cysts:  'Counting the dry cysts you add to each jar. Spread them on a light surface and photograph straight down.',
+  nauplii:'Counting hatched nauplii from a photo. Pour the whole jar into a wide shallow tray first so they spread into one thin layer.',
+  motion: 'Counting hatched nauplii from a short video. Brace the phone, let the tray settle, and record a few seconds. The tool keeps what swims and ignores what stays still.'
+};
+const CAPTURE = { cysts:'image', nauplii:'image', motion:'video' };
+const EMPTY_TEXT = {
+  cysts:  ['Add a photo to begin', 'Take or choose a photo of your cysts, then tap each one to count it.'],
+  nauplii:['Add a photo to begin', 'Take or choose a photo of the tray, then tap each swimming shrimp.'],
+  motion: ['Add a video to begin', 'Record or choose a short video of the tray, and the tool finds the swimmers for you to check.']
+};
+function setMode(m){
+  state.mode = m;
+  document.querySelectorAll('#modeSeg button').forEach(b=>b.classList.toggle('on', b.dataset.mode===m));
+  $('modeHelp').textContent = MODE_HELP[m];
+  const isVideo = CAPTURE[m]==='video';
+  $('file').setAttribute('accept', isVideo ? 'video/*' : 'image/*');
+  $('addPhoto').textContent = isVideo ? 'Add / take video' : 'Add / take photo';
+  $('detect').style.display = (m==='motion') ? 'none' : '';
+  $('motionTips').style.display = (m==='motion') ? '' : 'none';
+  $('emptyTitle').textContent = EMPTY_TEXT[m][0];
+  $('emptySub').textContent = EMPTY_TEXT[m][1];
+  updateCounts();
+}
+document.querySelectorAll('#modeSeg button').forEach(b=>{
+  b.addEventListener('click', ()=>setMode(b.dataset.mode));
+});
+$('target').addEventListener('input', updateCounts);
+
+/* ---------- file loading ---------- */
+$('addPhoto').addEventListener('click', ()=>{
+  // if a photo is already marked, offer to bank it instead of losing it
+  if(state.img && state.markers.length>0 && !confirm('Replace the current photo? Its marks will be cleared. To keep this count and add another photo, use "Save this photo & start another" instead.')) return;
+  $('file').value='';
+  $('file').click();
+});
+$('file').addEventListener('change', e=>{
+  const f = e.target.files && e.target.files[0];
+  if(!f) return;
+  if(CAPTURE[state.mode]==='video'){ handleVideo(f); return; }
+  const url = URL.createObjectURL(f);
+  const img = new Image();
+  img.onload = ()=>{ URL.revokeObjectURL(url); loadImage(img); };
+  img.onerror = ()=>{ URL.revokeObjectURL(url); alert('That image could not be opened. Try another photo.'); };
+  img.src = url;
+});
+
+function loadImage(img){
+  state.img = img;
+  state.markers = [];
+  state.history = [];
+  buildWork(img);
+  $('empty').style.display='none';
+  resizeCanvas();
+  fitView();
+  ['zoomIn','zoomOut','fit','detect','clear'].forEach(id=>$(id).disabled=false);
+  $('undo').disabled = true;
+  $('tileRow').style.display='';
+  draw(); updateCounts();
+}
+
+/* downscale to <= MAXW on the long edge for fast pixel work */
+function buildWork(img){
+  const MAXW = 1000;
+  const scale = Math.min(1, MAXW/Math.max(img.width, img.height));
+  const w = Math.max(1, Math.round(img.width*scale));
+  const h = Math.max(1, Math.round(img.height*scale));
+  const c = document.createElement('canvas'); c.width=w; c.height=h;
+  const cc = c.getContext('2d', {willReadFrequently:true});
+  cc.drawImage(img,0,0,w,h);
+  state.work = cc.getImageData(0,0,w,h);
+  state.workScale = scale; // work px = image px * scale
+}
+
+/* ---------- canvas sizing + view transform ---------- */
+function resizeCanvas(){
+  const r = stage.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio||1, 2);
+  canvas.width = Math.round(r.width*dpr);
+  canvas.height= Math.round(r.height*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  state._cssW = r.width; state._cssH = r.height;
+}
+window.addEventListener('resize', ()=>{ if(state.img){ resizeCanvas(); clampView(); draw(); }});
+
+function fitView(){
+  const cw=state._cssW, ch=state._cssH, iw=state.img.width, ih=state.img.height;
+  const s = Math.min(cw/iw, ch/ih);
+  state.view.min = s;
+  state.view.scale = s;
+  state.view.x = (cw - iw*s)/2;
+  state.view.y = (ch - ih*s)/2;
+}
+function clampView(){
+  const v=state.view;
+  v.scale = Math.max(v.min*0.9, Math.min(v.scale, v.min*40));
+}
+// image coords -> screen coords
+function toScreen(px,py){ const v=state.view; return [px*v.scale+v.x, py*v.scale+v.y]; }
+// screen coords -> image coords
+function toImage(sx,sy){ const v=state.view; return [(sx-v.x)/v.scale, (sy-v.y)/v.scale]; }
+
+/* ---------- drawing ---------- */
+function draw(){
+  const cw=state._cssW, ch=state._cssH;
+  ctx.clearRect(0,0,cw,ch);
+  if(!state.img) return;
+  const v=state.view;
+  ctx.imageSmoothingEnabled = v.scale < 2;
+  ctx.drawImage(state.img, v.x, v.y, state.img.width*v.scale, state.img.height*v.scale);
+  // markers
+  const rBase = 7;
+  for(const m of state.markers){
+    const [sx,sy]=toScreen(m.x,m.y);
+    if(sx<-20||sy<-20||sx>cw+20||sy>ch+20) continue;
+    ctx.beginPath();
+    ctx.arc(sx,sy,rBase,0,Math.PI*2);
+    if(m.auto){
+      ctx.fillStyle='rgba(29,183,147,0.85)';
+      ctx.fill();
+      ctx.lineWidth=2; ctx.strokeStyle='#ffffff'; ctx.stroke();
+    }else{
+      ctx.fillStyle='#ffd23f';
+      ctx.fill();
+      ctx.lineWidth=2.5; ctx.strokeStyle='#1B2450'; ctx.stroke();
+    }
+  }
+}
+
+/* ---------- counts ---------- */
+function bankedSum(){ return state.banked.reduce((a,b)=>a+b,0); }
+function updateCounts(){
+  const pc = state.markers.length;
+  const total = pc + bankedSum();
+  $('photoCount').textContent = pc;
+  $('totalCount').textContent = total;
+  // regions breakdown
+  if(state.banked.length){
+    $('regions').style.display='';
+    $('regions').innerHTML = 'Saved photos: ' + state.banked.map((n,i)=>`<span>${n}</span>`).join(' + ') +
+      ` &nbsp; then this photo <span>${pc}</span>`;
+  } else {
+    $('regions').style.display='none';
+  }
+  // target hint (mainly useful in cyst mode)
+  const t = parseInt($('target').value,10);
+  let msg='';
+  if(state.mode==='cysts' && t>0){
+    const diff = t - total;
+    if(total===0) msg = `Tap each cyst until the total reaches your target of <b>${t}</b>.`;
+    else if(diff>0) msg = `<b>${diff}</b> below your target of ${t}. Add ${diff} more cyst${diff===1?'':'s'} to the photo, or to the jar.`;
+    else if(diff<0) msg = `<b>${-diff}</b> above your target of ${t}. Remove ${-diff} before adding them to the jar.`;
+    else msg = `On target: exactly <b>${t}</b>.`;
+  } else if(state.mode!=='cysts'){
+    msg = total>0 ? `Enter <b>${total}</b> as this jar's count in your lab report.` : '';
+  }
+  $('targetHint').innerHTML = msg;
+}
+
+/* ---------- undo / clear / bank ---------- */
+function snapshot(){ state.history.push(state.markers.map(m=>({...m}))); if(state.history.length>60) state.history.shift(); $('undo').disabled=false; }
+$('undo').addEventListener('click', ()=>{
+  if(!state.history.length) return;
+  state.markers = state.history.pop();
+  if(!state.history.length) $('undo').disabled=true;
+  draw(); updateCounts();
+});
+$('clear').addEventListener('click', ()=>{
+  if(state.markers.length && !confirm('Remove all marks on this photo?')) return;
+  snapshot(); state.markers=[]; draw(); updateCounts();
+});
+$('bank').addEventListener('click', ()=>{
+  if(!state.img) return;
+  if(state.markers.length===0 && !confirm('This photo has no marks. Save it as 0 and start another?')) return;
+  state.banked.push(state.markers.length);
+  state.markers=[]; state.history=[]; $('undo').disabled=true;
+  state.img=null; state.work=null;
+  ctx.clearRect(0,0,state._cssW||0,state._cssH||0);
+  $('empty').style.display='';
+  ['zoomIn','zoomOut','fit','detect','clear'].forEach(id=>$(id).disabled=true);
+  updateCounts();
+});
+
+/* ---------- pointer: tap to mark, drag to pan, pinch to zoom ---------- */
+const pointers = new Map();
+let gesture = null; // {mode:'pan'|'pinch', ...}
+const TAP_MOVE = 8; // px
+
+stage.addEventListener('pointerdown', e=>{
+  if(!state.img) return;
+  stage.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId, {x:e.clientX, y:e.clientY, x0:e.clientX, y0:e.clientY, moved:false});
+  const rect = stage.getBoundingClientRect();
+  if(pointers.size===2){
+    const pts=[...pointers.values()];
+    const dx=pts[0].x-pts[1].x, dy=pts[0].y-pts[1].y;
+    gesture={mode:'pinch', dist:Math.hypot(dx,dy),
+      cx:(pts[0].x+pts[1].x)/2-rect.left, cy:(pts[0].y+pts[1].y)/2-rect.top,
+      scale0:state.view.scale};
+  } else if(pointers.size===1){
+    gesture={mode:'pan', rect};
+  }
+});
+stage.addEventListener('pointermove', e=>{
+  if(!pointers.has(e.pointerId)) return;
+  const p=pointers.get(e.pointerId);
+  p.x=e.clientX; p.y=e.clientY;
+  if(Math.hypot(p.x-p.x0,p.y-p.y0)>TAP_MOVE) p.moved=true;
+  if(!gesture) return;
+  if(gesture.mode==='pinch' && pointers.size>=2){
+    const pts=[...pointers.values()];
+    const dx=pts[0].x-pts[1].x, dy=pts[0].y-pts[1].y;
+    const d=Math.hypot(dx,dy);
+    const rect=stage.getBoundingClientRect();
+    const cx=(pts[0].x+pts[1].x)/2-rect.left, cy=(pts[0].y+pts[1].y)/2-rect.top;
+    zoomAround(cx,cy, (d/gesture.dist)*gesture.scale0 / state.view.scale);
+    gesture.dist=d; gesture.scale0=state.view.scale;
+  } else if(gesture.mode==='pan'){
+    const dx=e.movementX!==undefined?e.movementX:0;
+    const dy=e.movementY!==undefined?e.movementY:0;
+    // movement* can be unreliable across browsers; fall back to delta from last
+    state.view.x += dx; state.view.y += dy;
+    clampView(); draw();
+  }
+});
+stage.addEventListener('pointerup', e=>{
+  const p=pointers.get(e.pointerId);
+  const wasTap = p && !p.moved && pointers.size===1;
+  const rect=stage.getBoundingClientRect();
+  pointers.delete(e.pointerId);
+  if(pointers.size<2 && gesture && gesture.mode==='pinch') gesture={mode:'pan',rect};
+  if(pointers.size===0) gesture=null;
+  if(wasTap){
+    handleTap(e.clientX-rect.left, e.clientY-rect.top);
+  }
+});
+stage.addEventListener('pointercancel', e=>{ pointers.delete(e.pointerId); if(pointers.size===0) gesture=null; });
+
+// wheel zoom (desktop)
+stage.addEventListener('wheel', e=>{
+  if(!state.img) return;
+  e.preventDefault();
+  const rect=stage.getBoundingClientRect();
+  const factor = e.deltaY<0 ? 1.12 : 1/1.12;
+  zoomAround(e.clientX-rect.left, e.clientY-rect.top, factor);
+}, {passive:false});
+
+function zoomAround(cx,cy,factor){
+  const v=state.view;
+  const before=toImage(cx,cy);
+  v.scale*=factor; clampView();
+  const [nx,ny]=toScreen(before[0],before[1]);
+  v.x += cx-nx; v.y += cy-ny;
+  draw();
+}
+$('zoomIn').addEventListener('click', ()=>zoomAround(state._cssW/2,state._cssH/2,1.3));
+$('zoomOut').addEventListener('click', ()=>zoomAround(state._cssW/2,state._cssH/2,1/1.3));
+$('fit').addEventListener('click', ()=>{ fitView(); draw(); });
+
+function handleTap(sx,sy){
+  const [ix,iy]=toImage(sx,sy);
+  // remove if near an existing marker
+  const rHit = 11/state.view.scale; // screen ~11px in image units
+  let best=-1, bestD=rHit*rHit;
+  for(let i=0;i<state.markers.length;i++){
+    const dx=state.markers[i].x-ix, dy=state.markers[i].y-iy;
+    const d=dx*dx+dy*dy;
+    if(d<bestD){bestD=d;best=i;}
+  }
+  snapshot();
+  if(best>=0){ state.markers.splice(best,1); }
+  else {
+    if(ix<0||iy<0||ix>state.img.width||iy>state.img.height){ state.history.pop(); return; }
+    state.markers.push({x:ix,y:iy,auto:false});
+  }
+  draw(); updateCounts();
+}
+
+/* ============================================================
+   DETECTION  (pure, testable)
+   Calibrates color + size from the student's existing marks,
+   then finds similar blobs across the photo.
+   imgData: {data:Uint8ClampedArray, width, height}
+   marks:   array of {x,y} in imgData pixel coords
+   returns: array of {x,y} in imgData pixel coords (new detections)
+   ============================================================ */
+function rgb2hsv(r,g,b){
+  r/=255; g/=255; b/=255;
+  const mx=Math.max(r,g,b), mn=Math.min(r,g,b), d=mx-mn;
+  let h=0;
+  if(d>0){
+    if(mx===r) h=((g-b)/d)%6;
+    else if(mx===g) h=(b-r)/d+2;
+    else h=(r-g)/d+4;
+    h*=60; if(h<0)h+=360;
+  }
+  const s = mx===0?0:d/mx;
+  return [h,s,mx]; // h 0..360, s 0..1, v 0..1
+}
+function hueDiff(a,b){ let d=Math.abs(a-b)%360; return d>180?360-d:d; }
+
+function detectBlobs(imgData, marks, opts){
+  opts = opts||{};
+  const W=imgData.width, H=imgData.height, D=imgData.data;
+  if(!marks || marks.length<3) return {points:[], error:'need at least 3 example marks'};
+
+  // 1) sample color at each mark (3x3 average)
+  const hs=[], ss=[], vs=[];
+  for(const m of marks){
+    const mx=Math.round(m.x), my=Math.round(m.y);
+    let R=0,G=0,B=0,n=0;
+    for(let yy=my-1; yy<=my+1; yy++) for(let xx=mx-1; xx<=mx+1; xx++){
+      if(xx<0||yy<0||xx>=W||yy>=H) continue;
+      const i=(yy*W+xx)*4; R+=D[i];G+=D[i+1];B+=D[i+2];n++;
+    }
+    if(!n) continue;
+    const [h,s,v]=rgb2hsv(R/n,G/n,B/n);
+    hs.push(h); ss.push(s); vs.push(v);
+  }
+  if(hs.length<3) return {points:[], error:'marks landed off the image'};
+
+  // circular mean hue
+  let cx=0,cy=0;
+  for(const h of hs){ cx+=Math.cos(h*Math.PI/180); cy+=Math.sin(h*Math.PI/180); }
+  let hMean=Math.atan2(cy,cx)*180/Math.PI; if(hMean<0)hMean+=360;
+  const median=arr=>{const a=[...arr].sort((x,y)=>x-y);const k=a.length>>1;return a.length%2?a[k]:(a[k-1]+a[k])/2;};
+  const sMed=median(ss), vMed=median(vs);
+  // spread of hue around mean
+  let hSpread=0; for(const h of hs) hSpread=Math.max(hSpread,hueDiff(h,hMean));
+  const hTol=Math.min(45, Math.max(16, hSpread+10));
+  const sMin=Math.max(0.12, sMed*0.55);
+  const vMin=Math.max(0.05, vMed*0.45);
+  const vMax=Math.min(1.01, vMed+ (1-vMed)*0.6 + 0.15);
+
+  // 2) build mask
+  const mask=new Uint8Array(W*H);
+  for(let i=0,p=0;i<D.length;i+=4,p++){
+    const [h,s,v]=rgb2hsv(D[i],D[i+1],D[i+2]);
+    if(s>=sMin && v>=vMin && v<=vMax && hueDiff(h,hMean)<=hTol) mask[p]=1;
+  }
+
+  // 3) connected components (4-neighbour BFS)
+  const lbl=new Int32Array(W*H).fill(0);
+  const comps=[]; // {area, sx, sy, minx,miny,maxx,maxy}
+  const stackX=new Int32Array(W*H), stackY=new Int32Array(W*H);
+  let cur=0;
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++){
+    const p=y*W+x;
+    if(mask[p]!==1 || lbl[p]!==0) continue;
+    cur++;
+    let top=0; stackX[0]=x; stackY[0]=y; lbl[p]=cur;
+    let area=0, sumx=0, sumy=0, minx=x,miny=y,maxx=x,maxy=y;
+    while(top>=0){
+      const px=stackX[top], py=stackY[top]; top--;
+      area++; sumx+=px; sumy+=py;
+      if(px<minx)minx=px; if(px>maxx)maxx=px; if(py<miny)miny=py; if(py>maxy)maxy=py;
+      // neighbours
+      if(px>0){const q=py*W+px-1; if(mask[q]===1&&lbl[q]===0){lbl[q]=cur;top++;stackX[top]=px-1;stackY[top]=py;}}
+      if(px<W-1){const q=py*W+px+1; if(mask[q]===1&&lbl[q]===0){lbl[q]=cur;top++;stackX[top]=px+1;stackY[top]=py;}}
+      if(py>0){const q=(py-1)*W+px; if(mask[q]===1&&lbl[q]===0){lbl[q]=cur;top++;stackX[top]=px;stackY[top]=py-1;}}
+      if(py<H-1){const q=(py+1)*W+px; if(mask[q]===1&&lbl[q]===0){lbl[q]=cur;top++;stackX[top]=px;stackY[top]=py+1;}}
+    }
+    comps.push({area, cx:sumx/area, cy:sumy/area, minx,miny,maxx,maxy});
+  }
+
+  // 4) typical single-specimen area = median area of comps that contain a mark
+  const markComp=[];
+  for(const m of marks){
+    const mx=Math.round(m.x), my=Math.round(m.y);
+    if(mx<0||my<0||mx>=W||my>=H) continue;
+    const l=lbl[my*W+mx];
+    if(l>0) markComp.push(comps[l-1].area);
+  }
+  let typical = markComp.length ? median(markComp) : median(comps.map(c=>c.area));
+  if(!typical || typical<2) typical=Math.max(2, typical||4);
+
+  const minArea=Math.max(2, typical*0.3);
+  const maxArea=typical*8;
+
+  // 5) emit points; split clearly-merged blobs by area
+  const pts=[];
+  for(const c of comps){
+    if(c.area<minArea) continue;
+    if(c.area>maxArea){
+      // very large: likely glare/background leak; count conservatively by area but cap
+      const n=Math.min(Math.round(c.area/typical), 12);
+      spread(pts, c, n);
+      continue;
+    }
+    const n=Math.max(1, Math.round(c.area/ (typical*1.15)));
+    if(n<=1) pts.push({x:c.cx, y:c.cy});
+    else spread(pts, c, Math.min(n,6));
+  }
+  return {points:pts, calib:{hMean,hTol,sMin,vMin,vMax,typical, comps:comps.length}};
+}
+function spread(pts, c, n){
+  // place n points across the blob's bounding box (deterministic)
+  if(n<=1){ pts.push({x:c.cx,y:c.cy}); return; }
+  const w=(c.maxx-c.minx)||1, h=(c.maxy-c.miny)||1;
+  const cols=Math.ceil(Math.sqrt(n*w/h)) || 1;
+  const rows=Math.ceil(n/cols);
+  let placed=0;
+  for(let r=0;r<rows && placed<n;r++) for(let cc=0;cc<cols && placed<n;cc++){
+    pts.push({x:c.minx+(cc+0.5)*w/cols, y:c.miny+(r+0.5)*h/rows});
+    placed++;
+  }
+}
+
+/* ============================================================
+   MOTION DETECTION (pure, testable) — nauplii video mode
+   Counts objects that MOVE across sampled frames (live, swimming
+   nauplii) and ignores static objects (unhatched cysts, empty
+   shells, dead nauplii, yeast). Prototype: the thresholds below
+   are first guesses and need tuning against real tray footage.
+   ============================================================ */
+
+// Foreground spots in one RGBA frame on a light tray: anything darker
+// and/or more saturated than the bright background. Both nauplii and
+// cysts are returned; the tracker classifies them by motion afterward.
+function detectSpots(imgData, opts){
+  opts=opts||{};
+  const W=imgData.width, H=imgData.height, D=imgData.data, N=W*H;
+  const hist=new Uint32Array(256), lum=new Uint8Array(N);
+  for(let i=0,p=0;i<D.length;i+=4,p++){
+    const L=(D[i]*0.299+D[i+1]*0.587+D[i+2]*0.114)|0; lum[p]=L; hist[L]++;
+  }
+  let acc=0, bg=230; const tgt=N*0.80;                 // ~80th pct luminance = tray
+  for(let v=0;v<256;v++){ acc+=hist[v]; if(acc>=tgt){ bg=v; break; } }
+  const lumDelta=opts.lumDelta!=null?opts.lumDelta:26;
+  const satThresh=opts.satThresh!=null?opts.satThresh:0.20;
+  const mask=new Uint8Array(N);
+  for(let i=0,p=0;i<D.length;i+=4,p++){
+    const r=D[i],g=D[i+1],b=D[i+2], mx=Math.max(r,g,b), mn=Math.min(r,g,b);
+    const sat = mx===0?0:(mx-mn)/mx;
+    if((bg-lum[p])>=lumDelta || sat>=satThresh) mask[p]=1;
+  }
+  const lbl=new Int32Array(N), stX=new Int32Array(N), stY=new Int32Array(N);
+  const minA=opts.minArea!=null?opts.minArea:4, maxA=opts.maxArea!=null?opts.maxArea:4000;
+  const out=[]; let cur=0;
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++){
+    const p=y*W+x; if(mask[p]!==1||lbl[p]!==0) continue;
+    cur++; let top=0; stX[0]=x; stY[0]=y; lbl[p]=cur;
+    let area=0,cxs=0,cys=0;
+    while(top>=0){
+      const px=stX[top], py=stY[top]; top--; area++; cxs+=px; cys+=py;
+      if(px>0){const q=py*W+px-1; if(mask[q]===1&&lbl[q]===0){lbl[q]=cur;top++;stX[top]=px-1;stY[top]=py;}}
+      if(px<W-1){const q=py*W+px+1; if(mask[q]===1&&lbl[q]===0){lbl[q]=cur;top++;stX[top]=px+1;stY[top]=py;}}
+      if(py>0){const q=(py-1)*W+px; if(mask[q]===1&&lbl[q]===0){lbl[q]=cur;top++;stX[top]=px;stY[top]=py-1;}}
+      if(py<H-1){const q=(py+1)*W+px; if(mask[q]===1&&lbl[q]===0){lbl[q]=cur;top++;stX[top]=px;stY[top]=py+1;}}
+    }
+    if(area>=minA && area<=maxA) out.push({x:cxs/area, y:cys/area, area});
+  }
+  return out;
+}
+
+// Coarse integer global shift aligning `gray` onto `ref` (handheld shake).
+// Mean absolute difference over a subsampled grid, search +/- maxShift.
+function estimateShift(ref, gray, W, H, maxShift){
+  maxShift=maxShift||6; const step=4;
+  let bestErr=Infinity, best={dx:0,dy:0};
+  for(let dy=-maxShift;dy<=maxShift;dy++) for(let dx=-maxShift;dx<=maxShift;dx++){
+    let err=0,n=0;
+    for(let y=maxShift;y<H-maxShift;y+=step) for(let x=maxShift;x<W-maxShift;x+=step){
+      err+=Math.abs(ref[y*W+x]-gray[(y+dy)*W+(x+dx)]); n++;
+    }
+    err/=(n||1);
+    if(err<bestErr){ bestErr=err; best={dx,dy}; }
+  }
+  return best;
+}
+
+// Link per-frame detections into tracks, classify each object as moving or
+// static by how far it travels across the clip, and count the movers.
+function trackAndClassify(frameDetections, opts){
+  opts=opts||{};
+  const gate=opts.gate!=null?opts.gate:40;                 // max per-frame jump (work px)
+  const moveThresh=opts.moveThresh!=null?opts.moveThresh:6; // travel to count as moving
+  const maxGap=opts.maxGap!=null?opts.maxGap:2;
+  const K=frameDetections.length;
+  const minFrames=opts.minFrames!=null?opts.minFrames:Math.max(3, Math.round(K/3));
+  const tracks=[];
+  frameDetections.forEach((dets,f)=>{
+    const alive=tracks.filter(t=>t.lastFrame>=f-1-maxGap);
+    const pairs=[];
+    dets.forEach((d,di)=>{
+      alive.forEach(t=>{
+        const dx=d.x-t.last.x, dy=d.y-t.last.y, dd=dx*dx+dy*dy;
+        if(dd<=gate*gate) pairs.push({di,t,dd});
+      });
+    });
+    pairs.sort((a,b)=>a.dd-b.dd);
+    const usedDet=new Set(), usedTrack=new Set();
+    for(const pr of pairs){
+      if(usedDet.has(pr.di)||usedTrack.has(pr.t)) continue;
+      usedDet.add(pr.di); usedTrack.add(pr.t);
+      const d=dets[pr.di]; pr.t.pts.push({x:d.x,y:d.y,f}); pr.t.last={x:d.x,y:d.y}; pr.t.lastFrame=f;
+    }
+    dets.forEach((d,di)=>{
+      if(usedDet.has(di)) return;
+      tracks.push({pts:[{x:d.x,y:d.y,f}], last:{x:d.x,y:d.y}, lastFrame:f});
+    });
+  });
+  const objects=[];
+  for(const t of tracks){
+    if(t.pts.length<minFrames) continue;
+    let maxD=0, cx=0, cy=0;
+    for(const p of t.pts){ cx+=p.x; cy+=p.y; }
+    cx/=t.pts.length; cy/=t.pts.length;
+    for(let a=0;a<t.pts.length;a++) for(let b=a+1;b<t.pts.length;b++){
+      const dx=t.pts[a].x-t.pts[b].x, dy=t.pts[a].y-t.pts[b].y;
+      const d=Math.hypot(dx,dy); if(d>maxD) maxD=d;
+    }
+    objects.push({x:cx, y:cy, moving:maxD>moveThresh, displacement:maxD, frames:t.pts.length});
+  }
+  const moving=objects.filter(o=>o.moving);
+  return {objects, moving, movingCount:moving.length, staticCount:objects.length-moving.length};
+}
+
+// Full pipeline over sampled frames (each an RGBA ImageData at work size).
+// Returns moving-object positions in work px, ready to map to image coords.
+function runMotionOnFrames(frames, opts){
+  opts=opts||{};
+  if(!frames.length) return {moving:[], objects:[], movingCount:0, staticCount:0};
+  const W=frames[0].width, H=frames[0].height;
+  const grays=frames.map(fr=>{
+    const g=new Uint8Array(W*H), D=fr.data;
+    for(let i=0,p=0;i<D.length;i+=4,p++) g[p]=(D[i]*0.299+D[i+1]*0.587+D[i+2]*0.114)|0;
+    return g;
+  });
+  const ref=grays[0];
+  const dets=frames.map((fr,idx)=>{
+    const shift = idx===0 ? {dx:0,dy:0} : estimateShift(ref, grays[idx], W, H, opts.maxShift||6);
+    return detectSpots(fr, opts).map(s=>({x:s.x-shift.dx, y:s.y-shift.dy, area:s.area}));
+  });
+  return trackAndClassify(dets, opts);
+}
+
+/* ---------- wire detection to UI ---------- */
+$('detect').addEventListener('click', ()=>{
+  $('warn').style.display='none';
+  const manual = state.markers.filter(m=>!m.auto);
+  if(manual.length<3){
+    showWarn('First tap at least 5 to 10 specimens yourself. The assist learns their color and size from your taps, then finds the rest.');
+    return;
+  }
+  // convert manual marks (image coords) -> work coords
+  const s=state.workScale;
+  const marks = manual.map(m=>({x:m.x*s, y:m.y*s}));
+  const res = detectBlobs(state.work, marks, {});
+  if(res.error){ showWarn('Could not run the assist: '+res.error); return; }
+  // dedup against existing markers, convert work->image coords
+  const existing = state.markers.map(m=>[m.x,m.y]);
+  const rDup = Math.max(6, (res.calib? Math.sqrt(res.calib.typical/Math.PI):5)) / s * 1.3;
+  const rDup2 = rDup*rDup;
+  snapshot();
+  let added=0;
+  for(const p of res.points){
+    const ix=p.x/s, iy=p.y/s;
+    let dup=false;
+    for(const e of existing){ const dx=e[0]-ix,dy=e[1]-iy; if(dx*dx+dy*dy<rDup2){dup=true;break;} }
+    if(dup) continue;
+    state.markers.push({x:ix,y:iy,auto:true});
+    existing.push([ix,iy]);
+    added++;
+  }
+  if(added===0){ state.history.pop(); showWarn('The assist found nothing new beyond what you already marked. If shrimp are missing, tap them in by hand.'); }
+  draw(); updateCounts();
+  if(added>0) showWarn('Added '+added+' mark'+(added===1?'':'s')+' in teal. These are guesses, so check each one: tap to remove a wrong mark, tap an empty shrimp to add it.', true);
+});
+function showWarn(msg, ok){
+  const w=$('warn'); w.textContent=msg; w.style.display='';
+  w.style.background = ok? '#e7f8f2':'#fff6d6';
+  w.style.borderColor = ok? '#9adfc9':'#f0d98a';
+  w.style.color = ok? '#124f3b':'#5a4a13';
+}
+
+/* ---------- motion (video) mode wiring ---------- */
+async function handleVideo(file){
+  if(state.img && state.markers.length>0 && !confirm('Replace the current frame? Its marks will be cleared.')) return;
+  showWarn('Reading the video and finding movement, this can take a few seconds...', true);
+  // Name an undecodable clip up front (almost always iPhone HEVC) so the
+  // student gets the fix instead of a silent failure.
+  try{
+    const info = await sniffVideo(file);
+    if(info && info.playable===false){ showWarn(decodeHelp(info.name)); return; }
+  }catch(_){ /* container sniff is best-effort and never blocks loading */ }
+  try{
+    const {frames, displayImg} = await sampleVideoFrames(file, {maxDim:1000, K:16, timeoutMs:9000});
+    const res = runMotionOnFrames(frames, {});
+    state.img = displayImg; state.markers=[]; state.history=[];
+    buildWork(displayImg);
+    $('empty').style.display='none';
+    resizeCanvas(); fitView();
+    ['zoomIn','zoomOut','fit','clear'].forEach(id=>$(id).disabled=false);
+    $('detect').style.display='none';
+    $('undo').disabled=true; $('tileRow').style.display='';
+    const s=state.workScale;
+    for(const o of res.moving){ state.markers.push({x:o.x/s, y:o.y/s, auto:true, motion:true}); }
+    draw(); updateCounts();
+    showWarn('Marked '+res.movingCount+' moving object'+(res.movingCount===1?'':'s')+' in teal, and ignored '+res.staticCount+' that stayed still (cysts, shells, dead shrimp). Check each: tap to remove a wrong mark, tap a missed swimmer to add it.', true);
+  }catch(err){
+    const m=(err&&err.message)||String(err);
+    if(/decode|unreadable|cannot read|timed out/i.test(m)) showWarn(decodeHelp());
+    else showWarn('Could not process that video: '+m+'. You can switch to Nauplii photo mode and count by hand.');
+  }
+}
+
+// Plain-language fix for the commonest video-import failure: phone HEVC.
+function decodeHelp(name){
+  const lead = name ? ('This clip is '+name+', which this browser will not decode. ')
+                    : 'This browser could not decode that video. ';
+  return lead + 'Phone video is usually the cause. iPhones record HEVC, also called H.265 or High Efficiency, which many browsers will not open, and it needs to be H.264 instead. On an iPhone, open Settings, then Camera, then Formats, and choose Most Compatible, then film again. On an Android phone, open the camera app settings, find the video codec or high efficiency option, and set it to H.264. Opening this page in Safari can also read a clip that Chrome refuses. Or switch to Nauplii photo mode and count from a photo.';
+}
+
+// Sample K evenly spaced frames at a downscaled work size, plus one full
+// frame for display. A watchdog rejects if the browser never decodes, since
+// some browsers neither fire an error nor load an undecodable clip.
+function sampleVideoFrames(file, opts){
+  opts=opts||{}; const maxDim=opts.maxDim||1000, K=opts.K||16, timeoutMs=opts.timeoutMs||9000;
+  return new Promise((resolve,reject)=>{
+    const url=URL.createObjectURL(file);
+    let done=false;
+    const finish=(fn,arg)=>{ if(done)return; done=true; clearTimeout(watch); try{URL.revokeObjectURL(url);}catch(_){}; fn(arg); };
+    const watch=setTimeout(()=>finish(reject, new Error('video decode timed out')), timeoutMs);
+    const v=document.createElement('video');
+    v.muted=true; v.playsInline=true; v.preload='auto'; v.src=url;
+    v.onerror=()=>finish(reject, new Error('cannot read this video'));
+    v.onloadedmetadata=async ()=>{
+      const nW=v.videoWidth, nH=v.videoHeight, dur=v.duration;
+      if(!nW||!nH||!isFinite(dur)||dur<=0){ return finish(reject, new Error('unreadable video')); }
+      const sc=Math.min(1, maxDim/Math.max(nW,nH));
+      const wW=Math.max(1,Math.round(nW*sc)), wH=Math.max(1,Math.round(nH*sc));
+      const wc=document.createElement('canvas'); wc.width=wW; wc.height=wH;
+      const wctx=wc.getContext('2d',{willReadFrequently:true});
+      const t0=Math.min(0.05, dur*0.02), t1=Math.max(t0, dur-0.03);
+      const times=[]; for(let i=0;i<K;i++) times.push(t0+(t1-t0)*i/(Math.max(1,K-1)));
+      const seek=(t)=>new Promise((res2)=>{ const on=()=>{ v.removeEventListener('seeked',on); res2(); }; v.addEventListener('seeked',on); v.currentTime=t; });
+      try{
+        const frames=[];
+        for(const t of times){ await seek(t); wctx.drawImage(v,0,0,wW,wH); frames.push(wctx.getImageData(0,0,wW,wH)); }
+        await seek(times[0]);
+        const fc=document.createElement('canvas'); fc.width=nW; fc.height=nH;
+        fc.getContext('2d').drawImage(v,0,0,nW,nH);
+        const img=new Image();
+        img.onload=()=>finish(resolve,{frames, displayImg:img, workScale:sc});
+        img.onerror=()=>finish(reject, new Error('frame render failed'));
+        img.src=fc.toDataURL('image/jpeg',0.9);
+      }catch(e){ finish(reject, e); }
+    };
+  });
+}
+
+/* ---------- container sniffing: name an undecodable clip up front ----------
+   Reads MP4/MOV headers to identify the codec, then asks the browser whether
+   it can decode it. Adapted from the Frame by Frame motion app. Non-MP4/MOV
+   containers (e.g. webm) return null so the normal loader decides. */
+const CODEC_INFO = {
+  avc1:['H.264','video/mp4; codecs="avc1.42E01E"'],
+  avc3:['H.264','video/mp4; codecs="avc1.42E01E"'],
+  hvc1:['HEVC (H.265)','video/mp4; codecs="hvc1.1.6.L93.B0"'],
+  hev1:['HEVC (H.265)','video/mp4; codecs="hev1.1.6.L93.B0"'],
+  av01:['AV1','video/mp4; codecs="av01.0.05M.08"'],
+  vp09:['VP9','video/mp4; codecs="vp09.00.10.08"'],
+  mp4v:['MPEG-4 Visual','video/mp4; codecs="mp4v.20.8"']
+};
+function _fourcc(dv,p){ return String.fromCharCode(dv.getUint8(p),dv.getUint8(p+1),dv.getUint8(p+2),dv.getUint8(p+3)); }
+function _childBoxes(dv,start,end){
+  const out=[]; let pos=start;
+  while(pos+8<=end){
+    let size=dv.getUint32(pos); const type=_fourcc(dv,pos+4); let hdr=8;
+    if(size===1){ if(pos+16>end)break; size=dv.getUint32(pos+8)*4294967296+dv.getUint32(pos+12); hdr=16; }
+    else if(size===0){ size=end-pos; }
+    if(size<8) break;
+    out.push({type, start:pos+hdr, end:Math.min(end,pos+size)}); pos+=size;
+  }
+  return out;
+}
+function _pick(list,t){ for(const b of list) if(b.type===t) return b; return null; }
+function _readChunk(file,start,len){ return file.slice(start, Math.min(file.size,start+len)).arrayBuffer(); }
+function _findMoov(file,pos,guard){
+  pos=pos||0; guard=guard||0;
+  if(pos>=file.size||guard>500) return Promise.resolve(null);
+  return _readChunk(file,pos,16).then(buf=>{
+    if(buf.byteLength<8) return null;
+    const dv=new DataView(buf); let size=dv.getUint32(0); const type=_fourcc(dv,4); let hdr=8;
+    if(size===1&&buf.byteLength>=16){ size=dv.getUint32(8)*4294967296+dv.getUint32(12); hdr=16; }
+    else if(size===0){ size=file.size-pos; }
+    if(size<8) return null;
+    if(type==='moov') return _readChunk(file,pos+hdr,size-hdr).then(mv=>new DataView(mv));
+    return _findMoov(file,pos+size,guard+1);
+  });
+}
+function _readVideoTrack(dv){
+  const out={codec:null,width:0,height:0};
+  const top=_childBoxes(dv,0,dv.byteLength);
+  for(const tr of top){
+    if(tr.type!=='trak') continue;
+    const tb=_childBoxes(dv,tr.start,tr.end);
+    const mdia=_pick(tb,'mdia'); if(!mdia) continue;
+    const mb=_childBoxes(dv,mdia.start,mdia.end);
+    const hdlr=_pick(mb,'hdlr');
+    if(!hdlr || _fourcc(dv,hdlr.start+8)!=='vide') continue;
+    const minf=_pick(mb,'minf'); if(!minf) continue;
+    const stbl=_pick(_childBoxes(dv,minf.start,minf.end),'stbl'); if(!stbl) continue;
+    const stsd=_pick(_childBoxes(dv,stbl.start,stbl.end),'stsd');
+    if(stsd){ const entry=stsd.start+8; out.codec=_fourcc(dv,entry+4); out.width=dv.getUint16(entry+32); out.height=dv.getUint16(entry+34); }
+    return out;
+  }
+  return out;
+}
+function sniffVideo(file){
+  return _findMoov(file).then(moov=>{
+    if(!moov) return null;
+    const info=_readVideoTrack(moov);
+    if(!info.codec) return null;
+    const known=CODEC_INFO[info.codec];
+    const name = known ? known[0] : info.codec;
+    const playable = known ? (document.createElement('video').canPlayType(known[1])!=='') : true;
+    return {codec:info.codec, name, playable, width:info.width, height:info.height};
+  }).catch(()=>null);
+}
+
+/* ---------- init ---------- */
+setMode('cysts');
+resizeCanvas();
+updateCounts();
+
+// expose for headless testing
+if(typeof window!=='undefined'){
+  window.__detectBlobs = detectBlobs; window.__rgb2hsv=rgb2hsv;
+  window.__detectSpots = detectSpots; window.__estimateShift = estimateShift;
+  window.__trackAndClassify = trackAndClassify; window.__runMotionOnFrames = runMotionOnFrames;
+  window.__sniffVideo = sniffVideo; window.__decodeHelp = decodeHelp;
+}
+</script>
+</body>
+</html>
