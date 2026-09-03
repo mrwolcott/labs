@@ -28,7 +28,6 @@
   }
   a{color:var(--navy)}
   .wrap{max-width:1180px;margin:0 auto;padding:0 20px 64px}
-
   /* Masthead */
   header.mast{
     background:var(--navy);
@@ -42,7 +41,6 @@
     font-family:var(--data);font-size:11px;color:var(--navy);
     background:var(--teal);padding:5px 9px;border-radius:2px;
   }
-
   /* Step rail: sticky navigation */
   .rail{
     position:sticky; top:0; z-index:30;
@@ -69,7 +67,6 @@
   .step.active .num{border-color:var(--navy);color:var(--navy)}
   .step.active .lbl{color:var(--navy);font-weight:bold}
   .step.jump .lbl{color:var(--navy)}
-
   .cols{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:20px}
   .panel{scroll-margin-top:62px}
   @media (max-width:900px){
@@ -83,7 +80,6 @@
     .p-results{order:5}
     .panel + .panel{margin-top:0}
   }
-
   .panel{background:var(--white);border:1px solid var(--rule)}
   .panel > h2{
     margin:0;padding:9px 14px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
@@ -91,7 +87,6 @@
   }
   .panel .body{padding:14px}
   .panel + .panel{margin-top:20px}
-
   /* Video stage */
   .stage{position:relative;background:var(--navy);border-bottom:1px solid var(--rule)}
   canvas#frame{display:block;width:100%;height:auto;cursor:crosshair;background:var(--navy)}
@@ -103,11 +98,9 @@
   .loupe-wrap.on{display:block}
   canvas#loupe{display:block;width:154px;height:154px}
   .loupe-wrap .cap{font-family:var(--data);font-size:10px;color:var(--muted);padding:2px 5px;border-top:1px solid var(--rule)}
-
   .transport{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--rule);background:var(--card)}
   .clock{font-family:var(--data);font-size:13px;color:var(--navy);margin-left:auto;white-space:nowrap}
   input[type=range]{flex:1 1 160px;min-width:120px;accent-color:var(--teal)}
-
   button{
     font-family:var(--ui);font-size:13px;padding:7px 11px;
     background:var(--white);color:var(--navy);border:1px solid var(--navy);border-radius:2px;cursor:pointer;
@@ -121,7 +114,6 @@
   button:focus-visible, input:focus-visible, select:focus-visible, label.file:focus-within{
     outline:3px solid var(--teal);outline-offset:2px;
   }
-
   .field{display:flex;gap:8px;align-items:center;margin:0 0 10px}
   .field label{font-size:13px;color:var(--muted);flex:0 0 auto}
   input[type=text],input[type=number],select{
@@ -134,7 +126,6 @@
     padding:8px 12px;border:1px solid var(--teal);border-radius:2px;cursor:pointer;
   }
   label.file input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
-
   .note{font-size:13px;color:var(--muted);margin:8px 0 0}
   .hint{
     font-size:13px;color:var(--navy);background:var(--card);
@@ -146,17 +137,14 @@
   }
   .alert.on{display:block}
   .alert b{display:block;margin-bottom:4px}
-
   .pairrow{display:flex;gap:8px;align-items:center;margin:0 0 12px;font-size:13px}
   .pairrow input{width:16px;height:16px;accent-color:var(--teal);flex:none}
   .pairrow label{color:var(--ink);cursor:pointer}
-
   .trackpick{display:flex;gap:0;border:1px solid var(--rule);margin:0 0 12px}
   .trackpick button{flex:1;border:none;border-radius:0;border-right:1px solid var(--rule);text-align:left;padding:9px 11px}
   .trackpick button:last-child{border-right:none}
   .trackpick button.on{background:var(--navy);color:var(--white)}
   .trackpick .tally{font-family:var(--data);font-size:11px;display:block;opacity:.8}
-
   /* Readouts */
   .readout{border:1px solid var(--rule);margin:0 0 10px}
   .readout .rlbl{
@@ -168,7 +156,6 @@
   .readout .rfoot{font-size:12px;color:var(--muted);padding:0 11px 8px}
   .readout.key{border-color:var(--navy);border-left-width:4px}
   .readout.key .rval{font-size:26px}
-
   table{width:100%;border-collapse:collapse;font-family:var(--data);font-size:12px}
   th,td{padding:5px 7px;border-bottom:1px solid var(--rule);text-align:right;white-space:nowrap}
   th{color:var(--muted);font-weight:normal;text-align:right;border-bottom:1px solid var(--navy)}
@@ -176,20 +163,17 @@
   tbody tr:hover{background:var(--card)}
   td.flag{color:var(--navy);font-weight:bold}
   .tablescroll{max-height:290px;overflow:auto;border:1px solid var(--rule)}
-
   .graphs{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   @media (max-width:760px){.graphs{grid-template-columns:1fr}}
   .graph h3{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 6px;font-weight:normal}
   .graph canvas{display:block;width:100%;height:auto;border:1px solid var(--rule);background:var(--white)}
   .graph .cap{font-size:12px;color:var(--muted);margin:6px 0 0}
-
   .btnrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
   footer.foot{border-top:1px solid var(--rule);margin-top:28px;padding-top:14px;font-size:12px;color:var(--muted)}
   @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
-
 <header class="mast">
   <div class="mast-in">
     <div>
@@ -199,18 +183,14 @@
     <div class="privacy">Runs on your device. Nothing is uploaded.</div>
   </div>
 </header>
-
 <div class="wrap">
-
   <div class="rail" id="rail">
     <button class="step active" data-step="1" data-go="clip"><span class="num">1</span><span class="lbl">Load your clip</span></button>
     <button class="step" data-step="2" data-go="scale"><span class="num">2</span><span class="lbl">Set the scale</span></button>
     <button class="step" data-step="3" data-go="mark"><span class="num">3</span><span class="lbl">Mark the motion</span></button>
     <button class="step jump" data-go="results"><span class="lbl">Results</span></button>
   </div>
-
   <div class="cols">
-
     <!-- LEFT -->
     <div>
       <div class="panel p-clip" id="panel-clip">
@@ -235,16 +215,12 @@
             <label class="file" tabindex="0">Choose a video file<input type="file" id="file" accept="video/*"></label>
             <span class="note" id="fileName" style="margin:0">No clip loaded</span>
           </div>
-          <div class="field">
-            <label for="fps">Frames per second</label>
-            <input type="number" id="fps" value="60" min="1" max="480" step="1">
-            <span class="note" id="fpsNote" style="margin:0">Sets the step size only. Times come from the clip itself.</span>
-          </div>
           <div class="readout" id="clipInfoBox" style="display:none;margin:0 0 10px">
             <div class="rlbl">This clip</div>
             <div class="rval" id="clipCodec" style="font-size:16px">&mdash;</div>
             <div class="rfoot" id="clipFoot"></div>
           </div>
+          <div class="alert" id="fpsWarn"></div>
           <p class="note">Arrow keys step one frame. Comma and period work too.</p>
           <div class="hint" style="margin:12px 0 0">
             This tool measures motion in the plane of the video. It is right only when the whole motion stays the same
@@ -254,7 +230,6 @@
           </div>
         </div>
       </div>
-
       <div class="panel p-results" id="panel-results">
         <h2>Results</h2>
         <div class="body">
@@ -294,7 +269,6 @@
         </div>
       </div>
     </div>
-
     <!-- RIGHT -->
     <div>
       <div class="panel p-scale" id="panel-scale">
@@ -320,7 +294,6 @@
           </div>
         </div>
       </div>
-
       <div class="panel p-marking" id="panel-marking">
         <h2>Step 3 &middot; Marking</h2>
         <div class="body">
@@ -345,7 +318,6 @@
           </div>
         </div>
       </div>
-
       <div class="panel p-numbers" id="panel-numbers">
         <h2>Numbers</h2>
         <div class="body">
@@ -387,7 +359,6 @@
       </div>
     </div>
   </div>
-
   <footer class="foot">
     Frame by Frame, prototype. Your clip is read straight from the disk into this page and is never sent anywhere.
     Times are taken from the clip's own clock rather than assumed from a frame count.
@@ -395,42 +366,35 @@
     at a fixed distance from it.
   </footer>
 </div>
-
 <script>
 (function(){
   "use strict";
-
   // ---------- element handles ----------
   var video   = document.createElement('video');
   video.muted = true; video.playsInline = true; video.preload = 'auto';
-
   var cv      = document.getElementById('frame');
   var ctx     = cv.getContext('2d');
   var loupe   = document.getElementById('loupe');
   var lctx    = loupe.getContext('2d');
   var loupeWrap = document.getElementById('loupeWrap');
-
   var fileIn  = document.getElementById('file');
   var fileName= document.getElementById('fileName');
-  var fpsIn   = document.getElementById('fps');
+  var fpsWarn = document.getElementById('fpsWarn');
   var alertBox= document.getElementById('alert');
   var clipInfoBox = document.getElementById('clipInfoBox');
   var clipCodec   = document.getElementById('clipCodec');
   var clipFoot    = document.getElementById('clipFoot');
-
   var btnPlay = document.getElementById('btnPlay');
   var btnPrev = document.getElementById('btnPrev');
   var btnNext = document.getElementById('btnNext');
   var scrub   = document.getElementById('scrub');
   var clock   = document.getElementById('clock');
-
   var btnScale= document.getElementById('btnScale');
   var btnScaleClear = document.getElementById('btnScaleClear');
   var scaleLen= document.getElementById('scaleLen');
   var scaleHint = document.getElementById('scaleHint');
   var pxpm    = document.getElementById('pxpm');
   var pxpmFoot= document.getElementById('pxpmFoot');
-
   var trackpick = document.getElementById('trackpick');
   var markHint  = document.getElementById('markHint');
   var paired    = document.getElementById('paired');
@@ -440,12 +404,10 @@
   var relFoot      = document.getElementById('relFoot');
   var tallyObject  = document.getElementById('tallyObject');
   var tallyCarrier = document.getElementById('tallyCarrier');
-
   var btnCsv  = document.getElementById('btnCsv');
   var btnClear= document.getElementById('btnClear');
   var tblBody = document.querySelector('#tbl tbody');
   var rail    = document.getElementById('rail');
-
   // ---------- state ----------
   var S = {
     loaded:false,
@@ -458,19 +420,33 @@
     t:0,
     hover:null,
     rvfcPending:false,
-    playing:false
+    playing:false,
+    fps:60,               // step size, read from the clip header; 60 until a clip says otherwise
+    fpsRead:false
   };
-
   var hasRVFC = typeof video.requestVideoFrameCallback === 'function';
-
   // ---------- small helpers ----------
-  function fmt(v, d){ if(v===null||v===undefined||!isFinite(v)) return '\u2014'; return v.toFixed(d===undefined?3:d); }
+  function fmt(v, d){ if(v===null||v===undefined||!isFinite(v)) return '—'; return v.toFixed(d===undefined?3:d); }
   function say(title, msg){
     alertBox.innerHTML = '<b>'+title+'</b>'+msg;
     alertBox.classList.add('on');
   }
   function clearSay(){ alertBox.classList.remove('on'); alertBox.innerHTML=''; }
-
+  // the step size in use: the clip's own rate when the header gives one, 60 when it does not
+  function chosenFps(){ return S.fps; }
+  function setFpsFromClip(rate){
+    S.fpsRead = !!(rate && rate > 1 && rate < 1000);
+    S.fps = S.fpsRead ? rate : 60;
+    if(rate && rate < 45){
+      fpsWarn.innerHTML = '<b>This clip was recorded at ' + fmt(rate, rate % 1 ? 2 : 0) + ' frames per second.</b>'
+        + 'It will work, but you get only half as many points on a short fall, so every result is rougher. '
+        + 'If your phone can record at 60 frames per second, turn that on in the camera settings and film the trial again. '
+        + 'If 30 is the best your phone can do, carry on and drop the object from a little higher.';
+      fpsWarn.classList.add('on');
+    }else{
+      fpsWarn.classList.remove('on'); fpsWarn.innerHTML = '';
+    }
+  }
   function setStep(n){
     var steps = rail.querySelectorAll('.step');
     for(var i=0;i<steps.length;i++){
@@ -484,18 +460,15 @@
     if(!S.pxPerMetre){ setStep(2); return; }
     setStep(3);
   }
-
   // ---------- rail as navigation ----------
   var wantsCalm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   function goTo(id){
     var el = document.getElementById(id);
     if(el) el.scrollIntoView({ behavior: wantsCalm ? 'auto' : 'smooth', block: 'start' });
   }
-
   rail.addEventListener('click', function(e){
     var b = e.target.closest('.step'); if(!b) return;
     var go = b.getAttribute('data-go');
-
     if(go === 'clip'){
       goTo('panel-clip');
       fileIn.click();                       // opens the picker straight away
@@ -517,7 +490,6 @@
     }
     if(go === 'results'){ goTo('panel-results'); }
   });
-
   // ---------- container sniffing ----------
   // Reads the clip's own MP4 headers to name the codec, the true frame rate, and any
   // recorded rotation, so a clip that cannot decode says why before any effort is spent.
@@ -530,11 +502,9 @@
     vp09:['VP9','video/mp4; codecs="vp09.00.10.08"'],
     mp4v:['MPEG-4 Visual','video/mp4; codecs="mp4v.20.8"']
   };
-
   function fourcc(dv,p){
     return String.fromCharCode(dv.getUint8(p),dv.getUint8(p+1),dv.getUint8(p+2),dv.getUint8(p+3));
   }
-
   function childBoxes(dv, start, end){
     var out=[], pos=start;
     while(pos + 8 <= end){
@@ -549,16 +519,13 @@
     }
     return out;
   }
-
   function pick(list, t){
     for(var i=0;i<list.length;i++) if(list[i].type === t) return list[i];
     return null;
   }
-
   function readChunk(file, start, len){
     return file.slice(start, Math.min(file.size, start+len)).arrayBuffer();
   }
-
   // walks only the top level box chain, so this stays cheap on a large file
   function findMoov(file, pos, guard){
     pos = pos || 0; guard = guard || 0;
@@ -577,7 +544,6 @@
       return findMoov(file, pos + size, guard + 1);
     });
   }
-
   function readVideoTrack(dv){
     var out = { codec:null, width:0, height:0, rotation:0, fps:null };
     var top = childBoxes(dv, 0, dv.byteLength);
@@ -588,7 +554,6 @@
       var mb = childBoxes(dv, mdia.start, mdia.end);
       var hdlr = pick(mb,'hdlr');
       if(!hdlr || fourcc(dv, hdlr.start + 8) !== 'vide') continue;   // audio and data tracks skipped
-
       var mdhd = pick(mb,'mdhd'), timescale = null;
       if(mdhd){
         var mver = dv.getUint8(mdhd.start);
@@ -597,7 +562,6 @@
       var minf = pick(mb,'minf'); if(!minf) continue;
       var stbl = pick(childBoxes(dv, minf.start, minf.end), 'stbl'); if(!stbl) continue;
       var sb = childBoxes(dv, stbl.start, stbl.end);
-
       var stsd = pick(sb,'stsd');
       if(stsd){
         var entry = stsd.start + 8;                 // version and flags, then entry count
@@ -624,7 +588,6 @@
     }
     return out;
   }
-
   function describeClip(file){
     clipInfoBox.style.display = 'none';
     findMoov(file).then(function(moov){
@@ -634,28 +597,20 @@
       var known = CODEC_INFO[info.codec];
       var name  = known ? known[0] : info.codec;
       var playable = known ? video.canPlayType(known[1]) : '';
-
       var bits = [];
       if(info.width && info.height) bits.push(info.width + ' by ' + info.height);
       if(info.fps) bits.push(fmt(info.fps, info.fps % 1 ? 2 : 0) + ' frames per second');
       if(info.rotation) bits.push('recorded rotated ' + info.rotation + ' degrees');
-
       clipInfoBox.style.display = '';
       clipCodec.textContent = name + (playable ? '' : ', which this browser cannot decode');
       clipFoot.textContent = bits.length ? bits.join(', ') + '.' : '';
-
-      if(info.fps){
-        fpsIn.value = Math.round(info.fps * 100) / 100;
-        document.getElementById('fpsNote').textContent =
-          'Read from the clip, so you do not have to guess.';
-      }
+      setFpsFromClip(info.fps);   // 29.97 steps as 30, 59.94 as 60
       if(!playable && !S.loaded){
         if(loadWatch){ clearTimeout(loadWatch); loadWatch = null; }
         say('This clip is ' + name + ', and this browser will not decode it.', decodeHelp());
       }
     }).catch(function(){ /* sniffing is a convenience and never blocks loading */ });
   }
-
   // ---------- video loading ----------
   var loadWatch = null;
   fileIn.addEventListener('change', function(){
@@ -665,6 +620,7 @@
     fileName.textContent = f.name;
     if(video.src) URL.revokeObjectURL(video.src);
     S.loaded = false;
+    setFpsFromClip(null);         // back to 60 until this clip's header is read
     video.src = URL.createObjectURL(f);
     video.load();
     describeClip(f);
@@ -673,7 +629,6 @@
       if(!S.loaded) say('That clip did not decode in this browser.', decodeHelp());
     }, 4000);
   });
-
   video.addEventListener('loadedmetadata', function(){
     if(loadWatch){ clearTimeout(loadWatch); loadWatch = null; }
     if(!video.videoWidth){
@@ -695,12 +650,10 @@
     updateAll();
     say('Clip loaded.', 'Now click the two ends of your measuring stick, type its length, and choose Set the scale.');
   });
-
   video.addEventListener('error', function(){
     S.loaded = false;
     say('This clip did not decode in your browser.', decodeHelp());
   });
-
   function decodeHelp(){
     return 'Almost always this means the clip is recorded in HEVC, also called H.265 or high efficiency video, '
       + 'which many browsers will not decode. Your clip needs to be H.264 instead. '
@@ -709,7 +662,6 @@
       + 'On an iPhone, open Settings, then Camera, then Formats, and choose Most Compatible. '
       + 'Safari decodes some clips that Chrome refuses, so trying Safari is worth one attempt before refilming.';
   }
-
   // ---------- frame stepping ----------
   function seekTo(t){
     if(!S.loaded) return;
@@ -725,20 +677,20 @@
     }
     video.currentTime = t;
   }
-
   video.addEventListener('seeked', function(){
     S.t = video.currentTime;
     draw(); readClock();
   });
-
+  // A seek that lands exactly on a frame boundary can resolve to either neighbour, so every
+  // step aims a hair past the boundary in the forward direction. With exact frame times from
+  // requestVideoFrameCallback the nudge never accumulates; without it, it takes hundreds of
+  // steps to drift one frame.
+  var NUDGE = 0.0002;   // seconds, about one percent of a 60 fps frame
   function frameStep(dir){
-    var fps = Math.max(1, parseFloat(fpsIn.value) || 60);
-    seekTo(S.t + dir * (1/fps));
+    seekTo(S.t + dir * (1/chosenFps()) + NUDGE);
   }
-
   btnPrev.addEventListener('click', function(){ pause(); frameStep(-1); });
   btnNext.addEventListener('click', function(){ pause(); frameStep(1); });
-
   btnPlay.addEventListener('click', function(){
     if(S.playing) pause(); else play();
   });
@@ -761,14 +713,12 @@
     requestAnimationFrame(loop);
   }
   video.addEventListener('ended', pause);
-
   scrub.addEventListener('input', function(){
     if(!S.loaded) return;
     pause();
     var dur = isFinite(video.duration) ? video.duration : 0;
     seekTo(dur * (parseFloat(scrub.value)/1000));
   });
-
   function readClock(){
     clock.textContent = fmt(S.t, 3) + ' s';
     var dur = isFinite(video.duration) && video.duration > 0 ? video.duration : 0;
@@ -776,7 +726,6 @@
       scrub.value = Math.round(1000 * (S.t/dur));
     }
   }
-
   document.addEventListener('keydown', function(e){
     var tag = (e.target && e.target.tagName || '').toLowerCase();
     if(tag === 'input' || tag === 'select' || tag === 'textarea') return;
@@ -784,15 +733,12 @@
     if(e.key === 'ArrowLeft' || e.key === ','){ e.preventDefault(); pause(); frameStep(-1); }
     else if(e.key === 'ArrowRight' || e.key === '.'){ e.preventDefault(); pause(); frameStep(1); }
   });
-
   // ---------- drawing ----------
   function draw(){
     if(!S.loaded){ return; }
     try{ ctx.drawImage(video, 0, 0, cv.width, cv.height); }
     catch(err){ return; }
-
     var r = Math.max(2, Math.round(cv.width/300));
-
     // scale line
     if(S.scalePts.length){
       ctx.lineWidth = Math.max(2, r/1.5);
@@ -805,12 +751,10 @@
       }
       for(var i=0;i<S.scalePts.length;i++) tick(S.scalePts[i], '#FFC627', r*1.6);
     }
-
     // committed marks
     drawTrack(S.marks.carrier, '#FFFFFF', r);
     drawTrack(S.marks.object, '#1DB793', r);
   }
-
   function drawTrack(list, colour, r){
     if(!list.length) return;
     ctx.strokeStyle = colour; ctx.lineWidth = Math.max(1, r/2.5);
@@ -826,7 +770,6 @@
       ctx.stroke();
     }
   }
-
   function tick(p, colour, size){
     ctx.strokeStyle = colour; ctx.lineWidth = Math.max(1, size/4);
     ctx.beginPath();
@@ -834,7 +777,6 @@
     ctx.moveTo(p.x, p.y - size); ctx.lineTo(p.x, p.y + size);
     ctx.stroke();
   }
-
   // ---------- pointer handling ----------
   function toVideoCoords(evt){
     var rect = cv.getBoundingClientRect();
@@ -843,7 +785,6 @@
       y: (evt.clientY - rect.top)  * (cv.height / rect.height)
     };
   }
-
   cv.addEventListener('mousemove', function(e){
     if(!S.loaded) return;
     S.hover = toVideoCoords(e);
@@ -853,7 +794,6 @@
   cv.addEventListener('mouseleave', function(){
     S.hover = null; loupeWrap.classList.remove('on');
   });
-
   function drawLoupe(){
     if(!S.hover) return;
     var span = Math.max(24, Math.round(cv.width/24)); // source window
@@ -868,7 +808,6 @@
     lctx.moveTo(0, loupe.height/2); lctx.lineTo(loupe.width, loupe.height/2);
     lctx.stroke();
   }
-
   cv.addEventListener('click', function(e){
     if(!S.loaded) return;
     var p = toVideoCoords(e);
@@ -883,7 +822,6 @@
       draw(); updateAll();
     }
   });
-
   // ---------- committing a point ----------
   function setTrack(name){
     S.track = name;
@@ -892,12 +830,7 @@
       all[i].classList.toggle('on', all[i].getAttribute('data-track') === name);
     }
   }
-
-  function nextFrame(){
-    var fps = Math.max(1, parseFloat(fpsIn.value) || 60);
-    seekTo(S.t + 1/fps);
-  }
-
+  function nextFrame(){ frameStep(1); }
   function commitPoint(p){
     S.marks[S.track].push({ t: S.t, px: p.x, py: p.y });
     S.marks[S.track].sort(function(a,b){ return a.t - b.t; });
@@ -907,18 +840,15 @@
     }
     nextFrame();
   }
-
   paired.addEventListener('change', function(){
     setTrack('object'); draw(); updateAll();
   });
-
   btnRelease.addEventListener('click', function(){
     if(!S.loaded) return;
     // marking the same frame twice clears it, so this doubles as an undo
     S.release = (S.release !== null && Math.abs(S.release - S.t) < 1e-4) ? null : S.t;
     draw(); updateAll();
   });
-
   btnDelPoint.addEventListener('click', function(){
     var eps = 1e-4, t;
     if(paired.checked){
@@ -943,7 +873,6 @@
     S.release = null;
     draw(); updateAll();
   });
-
   // ---------- scale ----------
   btnScale.addEventListener('click', function(){
     if(S.scalePts.length !== 2){
@@ -965,19 +894,16 @@
     clearSay();
     updateAll();
   });
-
   btnScaleClear.addEventListener('click', function(){
     S.scalePts = []; S.pxPerMetre = null; S.mode = 'scale';
     draw(); updateAll();
   });
-
   // ---------- track choice ----------
   trackpick.addEventListener('click', function(e){
     var b = e.target.closest('button'); if(!b) return;
     setTrack(b.getAttribute('data-track'));
     draw(); updateAll();
   });
-
   // ---------- physics: fits ----------
   // one origin shared by both tracks, so exported positions are comparable
   function sharedOrigin(){
@@ -989,7 +915,6 @@
     if(c.length) t0 = Math.min(t0, c[0].t);
     return { x0: base.px, y0: base.py, t0: t0 };
   }
-
   function toMetres(list){
     if(!S.pxPerMetre || !list.length) return [];
     var o = sharedOrigin();
@@ -1003,13 +928,11 @@
       };
     });
   }
-
   // object points from the release frame onward, for the two acceleration fits
   function afterRelease(list){
     if(S.release === null) return list;
     return list.filter(function(p){ return p.tAbs >= S.release - 1e-6; });
   }
-
   function linFit(ts, ys){
     var n = ts.length;
     if(n < 3) return null;
@@ -1024,7 +947,6 @@
     var s2 = n > 2 ? sse/(n-2) : 0;
     return { m:m, b:b, r2: sst>0 ? 1-sse/sst : 1, se: Math.sqrt(s2/sxx), n:n };
   }
-
   function quadFit(ts, ys){
     var n = ts.length;
     if(n < 4) return null;
@@ -1053,7 +975,6 @@
       seC2: Math.sqrt(Math.max(0, s2*inv[2][2]))
     };
   }
-
   function solve3(Ain, bin){
     var A = Ain.map(function(r){ return r.slice(); });
     var b = bin.slice();
@@ -1076,7 +997,6 @@
     }
     return x;
   }
-
   function inv3(M){
     var a=M[0][0],b=M[0][1],c=M[0][2],d=M[1][0],e=M[1][1],f=M[1][2],g=M[2][0],h=M[2][1],i=M[2][2];
     var det = a*(e*i-f*h) - b*(d*i-f*g) + c*(d*h-e*g);
@@ -1087,7 +1007,6 @@
       [ (d*h-e*g)/det, (b*g-a*h)/det, (a*e-b*d)/det ]
     ];
   }
-
   // ---------- graphs ----------
   function plot(canvas, series, opts){
     var g = canvas.getContext('2d');
@@ -1095,7 +1014,6 @@
     var padL = 74, padR = 16, padT = 16, padB = 52;
     g.clearRect(0,0,W,H);
     g.fillStyle = '#FFFFFF'; g.fillRect(0,0,W,H);
-
     var pts   = series.points  || [];
     var pts2  = series.points2 || [];
     var curve = series.curve   || [];
@@ -1105,7 +1023,6 @@
       g.fillText(opts.empty || 'No data yet', padL, H/2);
       return;
     }
-
     var xs = all.map(function(p){ return p.x; });
     var ys = all.map(function(p){ return p.y; });
     var xmin = Math.min.apply(null, xs), xmax = Math.max.apply(null, xs);
@@ -1114,10 +1031,8 @@
     if(ymax - ymin < 1e-9){ ymax = ymin + 1; }
     var xpad = 0.06*(xmax-xmin), ypad = 0.10*(ymax-ymin);
     xmin -= xpad; xmax += xpad; ymin -= ypad; ymax += ypad;
-
     function X(v){ return padL + (v - xmin)/(xmax-xmin) * (W-padL-padR); }
     function Y(v){ return H-padB - (v - ymin)/(ymax-ymin) * (H-padT-padB); }
-
     // grid and axes
     g.strokeStyle = '#E8E8E8'; g.lineWidth = 1;
     g.font = '17px ui-monospace, Menlo, Consolas, monospace';
@@ -1137,7 +1052,6 @@
     }
     g.strokeStyle = '#1B2450'; g.lineWidth = 2;
     g.beginPath(); g.moveTo(padL, padT); g.lineTo(padL, H-padB); g.lineTo(W-padR, H-padB); g.stroke();
-
     g.fillStyle = '#747474'; g.font = '17px Arial'; g.textAlign = 'center'; g.textBaseline = 'bottom';
     g.fillText(opts.xlab || '', padL + (W-padL-padR)/2, H-6);
     g.save();
@@ -1145,7 +1059,6 @@
     g.textBaseline = 'top';
     g.fillText(opts.ylab || '', 0, 0);
     g.restore();
-
     // fitted curve
     if(series.curve && series.curve.length){
       g.strokeStyle = '#1DB793'; g.lineWidth = 3;
@@ -1155,13 +1068,11 @@
       });
       g.stroke();
     }
-
     // points
     pts.forEach(function(p){
       g.fillStyle = series.colour || '#1B2450';
       g.beginPath(); g.arc(X(p.x), Y(p.y), 5, 0, 6.2832); g.fill();
     });
-
     // secondary point set
     if(series.points2 && series.points2.length){
       series.points2.forEach(function(p){
@@ -1170,7 +1081,6 @@
       });
     }
   }
-
   // ---------- master refresh ----------
   function updateAll(){
     // scale readouts
@@ -1179,12 +1089,11 @@
       pxpmFoot.textContent = 'One pixel is about ' + (1000/S.pxPerMetre).toFixed(1) + ' mm at that distance.';
       scaleHint.textContent = 'Scale is set. Choose Clear if the camera moved or you framed a new clip.';
     }else{
-      pxpm.textContent = '\u2014';
+      pxpm.textContent = '—';
       pxpmFoot.textContent = S.scalePts.length === 1 ? 'One end marked. Click the other end.' : 'Not set';
       scaleHint.textContent = 'Click the two ends of your measuring stick in the frame, then type its real length.';
     }
     btnScaleClear.disabled = !(S.scalePts.length || S.pxPerMetre);
-
     // marking readouts
     if(!S.pxPerMetre){
       markHint.textContent = 'Set the scale first, then click the object once on each frame.';
@@ -1205,26 +1114,21 @@
       btnDelPoint.textContent = 'Delete last point';
     }
     btnClear.disabled = !(S.marks.object.length || S.marks.carrier.length);
-
     var O = toMetres(S.marks.object);
     var C = toMetres(S.marks.carrier);
-
     // object sideways velocity
     var fo = O.length >= 3 ? linFit(O.map(function(p){return p.t;}), O.map(function(p){return p.x;})) : null;
     var fc = C.length >= 3 ? linFit(C.map(function(p){return p.t;}), C.map(function(p){return p.x;})) : null;
-
     var voObj = document.getElementById('voObj'), voObjFoot = document.getElementById('voObjFoot');
     if(fo){
       voObj.innerHTML = fmt(fo.m,3) + ' <small>m/s</small>';
       voObjFoot.textContent = 'give or take ' + fmt(fo.se,3) + ' m/s, straight line fit to ' + fo.n + ' points, r squared ' + fmt(fo.r2,4);
-    }else{ voObj.innerHTML = '\u2014'; voObjFoot.textContent = 'Needs 3 or more object points'; }
-
+    }else{ voObj.innerHTML = '—'; voObjFoot.textContent = 'Needs 3 or more object points'; }
     var voCar = document.getElementById('voCar'), voCarFoot = document.getElementById('voCarFoot');
     if(fc){
       voCar.innerHTML = fmt(fc.m,3) + ' <small>m/s</small>';
       voCarFoot.textContent = 'give or take ' + fmt(fc.se,3) + ' m/s, straight line fit to ' + fc.n + ' points, r squared ' + fmt(fc.r2,4);
-    }else{ voCar.innerHTML = '\u2014'; voCarFoot.textContent = 'Needs 3 or more carrier points'; }
-
+    }else{ voCar.innerHTML = '—'; voCarFoot.textContent = 'Needs 3 or more carrier points'; }
     // the object's velocity in the carrier's frame: predicted zero, and defined when standing still
     var vdiff = document.getElementById('vdiff'), vdiffFoot = document.getElementById('vdiffFoot');
     if(fo && fc){
@@ -1232,8 +1136,7 @@
       vdiff.innerHTML = fmt(dv,3) + ' <small>m/s</small>';
       var extra = Math.abs(fc.m) > 0.15 ? '  Ratio of the two is ' + fmt(fo.m/fc.m,3) + '.' : '';
       vdiffFoot.textContent = 'give or take ' + fmt(sdv,3) + ' m/s.' + extra;
-    }else{ vdiff.innerHTML = '\u2014'; vdiffFoot.textContent = 'Both tracks needed'; }
-
+    }else{ vdiff.innerHTML = '—'; vdiffFoot.textContent = 'Both tracks needed'; }
     // accelerations, from the release frame onward if one is marked
     var Oa = afterRelease(O);
     var qy = Oa.length >= 4 ? quadFit(Oa.map(function(p){return p.t;}), Oa.map(function(p){return p.y;})) : null;
@@ -1241,7 +1144,6 @@
     var relNote = (S.release === null)
       ? ' No release frame marked, so every object point is included.'
       : ' Using the ' + Oa.length + ' points from the release frame onward.';
-
     var accel = document.getElementById('accel'), accelFoot = document.getElementById('accelFoot');
     if(qy){
       var a = 2*qy.c2, sa = 2*qy.seC2;
@@ -1249,15 +1151,13 @@
       var pct = Math.abs((Math.abs(a) - 9.81)/9.81)*100;
       accelFoot.textContent = 'give or take ' + fmt(sa,2) + '. Size is ' + fmt(Math.abs(a),2)
         + ', which is ' + pct.toFixed(1) + ' percent from 9.81.' + relNote;
-    }else{ accel.innerHTML = '\u2014'; accelFoot.textContent = 'Needs 4 or more object points'; }
-
+    }else{ accel.innerHTML = '—'; accelFoot.textContent = 'Needs 4 or more object points'; }
     var accelX = document.getElementById('accelX'), accelXFoot = document.getElementById('accelXFoot');
     if(qx){
       var ax = 2*qx.c2, sax = 2*qx.seC2;
       accelX.innerHTML = fmt(ax,2) + ' <small>m/s squared</small>';
       accelXFoot.textContent = 'give or take ' + fmt(sax,2) + '.' + relNote;
-    }else{ accelX.innerHTML = '\u2014'; accelXFoot.textContent = 'Needs 4 or more object points'; }
-
+    }else{ accelX.innerHTML = '—'; accelXFoot.textContent = 'Needs 4 or more object points'; }
     // release readout
     btnRelease.disabled = !S.loaded;
     if(S.release === null){
@@ -1267,7 +1167,6 @@
       relVal.textContent = fmt(S.release,3) + ' s';
       relFoot.textContent = 'Marking the same frame again clears it.';
     }
-
     // graphs
     var curveX = [];
     if(fo && O.length){
@@ -1281,7 +1180,6 @@
       points: O.map(function(p){ return {x:p.t, y:p.x}; }),
       curve: curveX, colour:'#1B2450'
     }, { xlab:'time (s)', ylab:'sideways position (m)', empty:'Mark the object to see this' });
-
     var curveY = [];
     if(qy && Oa.length){
       var u1 = Oa[0].t, u2 = Oa[Oa.length-1].t;
@@ -1294,7 +1192,6 @@
       points: O.map(function(p){ return {x:p.t, y:p.y}; }),
       curve: curveY, colour:'#1B2450'
     }, { xlab:'time (s)', ylab:'height (m)', empty:'Mark the object to see this' });
-
     // velocity two ways: differences vs derivative of the fit
     var diffs = [];
     for(var d=1;d<O.length;d++){
@@ -1312,13 +1209,11 @@
     plot(document.getElementById('gv'), {
       points: [], points2: diffs, curve: curveV
     }, { xlab:'time (s)', ylab:'up and down velocity (m/s)', empty:'Mark 4 or more object points to see this' });
-
     // table
     renderTable(O, C);
     btnCsv.disabled = !(O.length || C.length);
     refreshStep();
   }
-
   function renderTable(O, C){
     var rows = [];
     function push(list, name){
@@ -1339,7 +1234,6 @@
     });
     tblBody.innerHTML = html;
   }
-
   // ---------- CSV ----------
   btnCsv.addEventListener('click', function(){
     var O = toMetres(S.marks.object), C = toMetres(S.marks.carrier);
@@ -1348,7 +1242,6 @@
     var Oa = afterRelease(O);
     var qy = Oa.length>=4 ? quadFit(Oa.map(function(p){return p.t;}), Oa.map(function(p){return p.y;})) : null;
     var qx = Oa.length>=4 ? quadFit(Oa.map(function(p){return p.t;}), Oa.map(function(p){return p.x;})) : null;
-
     var who = (document.getElementById('who').value || '').replace(/[",\n]/g,' ');
     var trial = (document.getElementById('trial').value || '').replace(/[",\n]/g,' ');
     var L = [];
@@ -1356,7 +1249,7 @@
     L.push('# name,' + who);
     L.push('# trial,' + trial);
     L.push('# clip,' + (fileIn.files && fileIn.files[0] ? fileIn.files[0].name.replace(/[",\n]/g,' ') : ''));
-    L.push('# frames per second entered,' + (parseFloat(fpsIn.value)||''));
+    L.push('# frames per second from clip header,' + (S.fpsRead ? chosenFps().toFixed(3) : '60 assumed (header unreadable)'));
     L.push('# reference length m,' + (parseFloat(scaleLen.value)||''));
     L.push('# pixels per metre,' + (S.pxPerMetre ? S.pxPerMetre.toFixed(3) : ''));
     L.push('# object sideways velocity m per s,' + (fo ? fo.m.toFixed(4) : ''));
@@ -1379,7 +1272,6 @@
       });
     }
     rowsFor(O, 'object'); rowsFor(C, 'carrier');
-
     var blob = new Blob([L.join('\n')], {type:'text/csv'});
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
@@ -1388,18 +1280,9 @@
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
   });
-
-  fpsIn.addEventListener('change', function(){
-    var f = parseFloat(fpsIn.value);
-    document.getElementById('fpsNote').textContent = (f >= 50)
-      ? 'Sets the step size only. Times come from the clip itself.'
-      : 'Sets the step size only. Below 50 you will get few points on a short fall, so film at 60 if your phone offers it.';
-  });
-
   if(!hasRVFC){
     say('Frame timing note.', 'This browser does not report exact frame times, so the app uses the clip clock instead. It still works. Chrome, Edge, or Safari will give slightly tighter timing.');
   }
-
   updateAll();
 })();
 </script>
