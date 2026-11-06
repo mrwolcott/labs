@@ -1,0 +1,277 @@
+{
+  "meta": {
+    "course": "PHYSICS",
+    "cycle_title": "What Makes a Toilet Flush?",
+    "lab_title": "Moving Water Without a Pump",
+    "driving_question": "What makes a toilet flush, and why does it only work when the water goes in fast?",
+    "date_emitted": "2026-11-06",
+    "revision": "v2, engine calibrated against class data from the first submission set (8 usable of 18 reports) on 2026-11-06"
+  },
+  "setups": [
+    {
+      "setup_key": "tube_transfer_apparatus",
+      "setup_title": "Water transfer between two open containers through a filled tube",
+      "simulable": "partial",
+      "simulability_note": "Parts A, B and C preserve the cognitive pressure because the student still chooses heights, reads a ruler and a scale, and must decide for themselves whether an apparent change is real. Part D does not, because its entire value is the surprise of finding the tube still full, and a rendered animation hands that over rather than letting the student earn it. Part D is therefore withheld and the bench student gets it from classmates during the Session 2 review, which is when the whole class discusses it anyway.",
+      "legs": {
+        "part_a_priming": "simulable now",
+        "part_b_height_difference": "simulable now, calibrated",
+        "part_c_apex_height": "simulable now",
+        "part_d_equalisation": "withheld by design"
+      },
+      "archetype": "continuous_measurement",
+      "student_actions": [
+        "Choose an assigned tube inner diameter and read it as printed on the packaging, including the chance to read the outer diameter by mistake",
+        "Set the source container on a variable stack of books and read the resulting height difference off a ruler against the two water surfaces",
+        "Prime the tube, or leave it full of air for Part A",
+        "Read the starting mass off the scale, release the tube, start a timer",
+        "Close the tube at the end of the interval, read the ending height difference and the ending mass",
+        "Pour water back from receiver to source and repeat",
+        "Raise the middle of the tube to a chosen apex height and repeat the timed trial"
+      ],
+      "instruments": [
+        {
+          "key": "kitchen_scale",
+          "type": "digital_scale",
+          "precision": "1 g",
+          "accuracy": "about ±2 g, with 1 to 2 g of creep over a 60 s interval",
+          "analog": false
+        },
+        {
+          "key": "ruler",
+          "type": "linear_scale",
+          "precision": "marked every 0.1 cm",
+          "accuracy": "student interpolates against a water surface",
+          "analog": true
+        },
+        {
+          "key": "timer",
+          "type": "digital_stopwatch",
+          "precision": "0.01 s",
+          "accuracy": "human reaction, about ±0.2 s",
+          "analog": false
+        }
+      ],
+      "vessels": [
+        {
+          "key": "source_bowl",
+          "capacity": "at least 2 L, 20 cm across, 8 cm deep",
+          "graduated": false
+        },
+        {
+          "key": "receiver_bowl",
+          "capacity": "at least 2 L, 20 cm across, 8 cm deep",
+          "graduated": false
+        },
+        {
+          "key": "narrow_glass",
+          "capacity": "about 600 mL, 8 cm across, 12 cm tall",
+          "graduated": false
+        }
+      ],
+      "materials": [
+        {
+          "key": "tube_3_2",
+          "name": "Flexible tubing, 3.2 mm (1/8 inch) inner diameter",
+          "form": "1.5 m length",
+          "realistic_max": "1.5 m"
+        },
+        {
+          "key": "tube_4_8",
+          "name": "Flexible tubing, 4.8 mm (3/16 inch) inner diameter",
+          "form": "1.5 m length",
+          "realistic_max": "1.5 m"
+        },
+        {
+          "key": "tube_6_4",
+          "name": "Flexible tubing, 6.4 mm (1/4 inch) inner diameter",
+          "form": "1.5 m length",
+          "realistic_max": "1.5 m"
+        },
+        {
+          "key": "water",
+          "name": "Water, dyed with food coloring",
+          "form": "liquid",
+          "realistic_max": "3 L"
+        }
+      ],
+      "engine": {
+        "relationship": "Steady energy balance between the two free surfaces: g*dh = (f*L/D + K)*v^2/2, solved for v. Flow rate Q = v*A, collected mass m = rho*Q*t. The height difference falls during a trial as the source drops and the receiver rises, so the engine integrates dh over the interval rather than holding it fixed.",
+        "constants": [
+          {
+            "symbol": "rho",
+            "value": 1000,
+            "units": "kg/m^3",
+            "source": "Density of water at room temperature, CK-12 Chapter 5.6",
+            "confidence": "sourced"
+          },
+          {
+            "symbol": "g",
+            "value": 9.8,
+            "units": "m/s^2",
+            "source": "CK-12 Chapter 5.6",
+            "confidence": "sourced"
+          },
+          {
+            "symbol": "mu",
+            "value": 0.001,
+            "units": "Pa*s",
+            "source": "Dynamic viscosity of water at 20 C, standard tables",
+            "confidence": "sourced"
+          },
+          {
+            "symbol": "L",
+            "value": 1.5,
+            "units": "m",
+            "source": "Lab design parameter, specified in the student materials",
+            "confidence": "sourced"
+          },
+          {
+            "symbol": "K",
+            "value": 1.5,
+            "units": "dimensionless",
+            "source": "Entrance loss 0.5 plus exit velocity head 1.0, standard minor-loss tables",
+            "confidence": "estimated"
+          },
+          {
+            "symbol": "f_laminar",
+            "value": "64/Re",
+            "units": "dimensionless",
+            "source": "Hagen-Poiseuille, valid Re < 2000",
+            "confidence": "sourced"
+          },
+          {
+            "symbol": "f_turbulent",
+            "value": "0.316/Re^0.25",
+            "units": "dimensionless",
+            "source": "Blasius correlation, valid Re 4000 to 1e5",
+            "confidence": "sourced"
+          }
+        ],
+        "response_profile": "Scale reading climbs close to linearly during a trial, with a slight downward curvature as the height difference falls. Reading settles within about a second of the tube being closed.",
+        "estimated_parameters": [
+          {
+            "name": "regime_intermittency_in_transition",
+            "value": "For Re between 2000 and 4000 the friction factor is a per-trial blend of the laminar and Blasius values, weight = (Re-2000)/2000 plus a seeded normal offset of SD 0.35, clamped to 0 to 1. Below 2000 laminar, above 4000 Blasius. A seeded per-trial multiplier of 1 plus N(0, 0.03) is applied outside the band.",
+            "confidence": "bench_tested",
+            "note": "Fit to class data: same-height pairs split 20 to 40 percent for 4.5 to 4.8 mm tubes between Re 2000 and 3500 (students 2 and 8), and repeat within 3 to 5 percent for 6.4 mm above Re 3500 (student 18) and 4.3 mm below Re 2000 (student 16)."
+          },
+          {
+            "name": "scale_creep",
+            "value": "1 to 2 g over 60 s",
+            "confidence": "estimated"
+          },
+          {
+            "name": "buoyancy_shift_on_submerged_tube",
+            "value": "up to about 1 g, biasing collection high",
+            "confidence": "calculated"
+          },
+          {
+            "name": "bend_loss_at_apex",
+            "value": "K rises by 0.15 at 30 cm apex above the source surface, under 1 percent in flow rate",
+            "confidence": "estimated"
+          }
+        ],
+        "calculated_results": [
+          {
+            "name": "flow_rate_3_2mm_10cm_to_50cm",
+            "value": "1.6 mL/s rising to between 5.2 and 7.3 mL/s",
+            "confidence": "calculated"
+          },
+          {
+            "name": "flow_rate_4_8mm_10cm_to_50cm",
+            "value": "7.4 mL/s rising to 15.2 mL/s",
+            "confidence": "calculated"
+          },
+          {
+            "name": "flow_rate_6_4mm_10cm_to_50cm",
+            "value": "between 13.1 and 19.4 mL/s rising to 32.2 mL/s",
+            "confidence": "calculated"
+          },
+          {
+            "name": "reynolds_range_whole_apparatus",
+            "value": "648 at the bottom of the 3.2 mm range to 6407 at the top of the 6.4 mm range",
+            "confidence": "calculated"
+          },
+          {
+            "name": "transition_crossing_3_2mm",
+            "value": "about 33 cm height difference",
+            "confidence": "calculated"
+          },
+          {
+            "name": "collected_mass_range",
+            "value": "98 g at the weakest trial to 483 g at the strongest",
+            "confidence": "calculated"
+          },
+          {
+            "name": "apex_effect_on_velocity",
+            "value": "under 1 percent across the achievable 10 to 30 cm apex range, from bend losses only",
+            "confidence": "calculated"
+          },
+          {
+            "name": "free_fall_comparison_at_30cm",
+            "value": "2.42 m/s free fall against 0.57 to 0.75 m/s measured, a factor of 3.2 to 4.2",
+            "confidence": "calculated"
+          },
+          {
+            "name": "class_data_agreement",
+            "value": "Engine within about 10 percent of measured flow rate wherever the recorded inner diameter is trustworthy: student 18 (6.4 mm) ratio 1.03 to 1.16 over 11 to 46 cm; student 16 (4.3 mm) 0.95 to 1.12; student 2 (4.48 mm) 0.86 to 0.96 above 30 cm. Apex series flat for every student who ran it, to 76 cm.",
+            "confidence": "bench_tested"
+          }
+        ],
+        "blockers": [],
+        "resolved_blockers": [
+          {
+            "leg": "part_b_height_difference",
+            "issue": "Regime rule and trial-to-trial scatter inside the laminar to turbulent transition",
+            "resolution": "Settled by class data on 2026-11-06 rather than a bench run. See regime_intermittency_in_transition."
+          }
+        ]
+      },
+      "operating_ranges": {
+        "height_difference_cm": [
+          5,
+          60
+        ],
+        "apex_height_cm": [
+          0,
+          30
+        ],
+        "timing_interval_s": [
+          5,
+          180
+        ],
+        "source_water_depth_cm": [
+          2,
+          8
+        ],
+        "receiver_start_volume_mL": [
+          0,
+          1000
+        ]
+      },
+      "time_structure": {
+        "multi_day": false,
+        "slow_step": null,
+        "real_duration": null
+      },
+      "handed_over_observations": [
+        {
+          "observation": "Part A, the air filled tube with both ends submerged",
+          "narrative_given": "The student releases both ends and watches the colored water for thirty seconds, seeing where it travels inside each leg and where it comes to rest. The bench renders the motion and stops; it states no conclusion and draws no comparison between the two legs.",
+          "cost": "This student still has to get the freeboard right: if the source is filled within about 1 cm of the rim the column crests and transfer starts, which is the opposite result. What the bench hands over is the climb itself, rendered rather than discovered, and the tube arching over both rims is drawn for them."
+        }
+      ],
+      "withheld_observations": [
+        {
+          "observation": "Part D, the flow stopping with the tube still completely full once the two surfaces reach the same level",
+          "reason": "This is the discriminating evidence for the whole cycle. Its value is entirely in the surprise of a full tube of water sitting still, and rendering it converts an earned observation into a delivered one.",
+          "student_path": "Session 2 reviews this observation as a class at the 0:18 block, so a bench student hears it from classmates alongside their own Part A result. They will not be able to answer discussion question 5 from their own data, which should be treated as expected rather than as missing work."
+        }
+      ],
+      "expected_values": "Cross-check the engine against the teacher notes: flow rate rising by more than a factor of three across the full height range for the 3.2 mm tube; no measurable change across the apex series for any tube; collected masses between 98 g and 483 g at the assigned timing intervals; velocities between 0.20 and 1.00 m/s across all tubes and heights; Part A water rising in each leg to the level of the surface outside it and stopping short of the rim.",
+      "class_data_notes": "Dominant spread in the real data is recorded diameter, not physics: student 9 recorded 4.8 mm and fits 3.7 mm (outer diameter read as inner); student 12 recorded 3.2 mm and fits 4.0 mm (metric 6 x 4 mm airline tubing); student 10 recorded 4 mm and fits 5.7 mm. The packaging-label step in the bench reproduces this.",
+      "bench_file": "Moving_Water_Without_a_Pump_virtual_bench.html, generated 2026-11-06, seed format MWP-XXXXXX-NN where NN counts releases of the tube and Part A placements."
+    }
+  ]
+}
