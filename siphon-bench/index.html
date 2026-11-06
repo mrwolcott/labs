@@ -122,6 +122,8 @@
         <button class="ghost" id="swReset">Reset</button>
       </div>
     </div>
+    <label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" id="swLink" checked> Start and stop with the clamp, as if a second hand were on the stopwatch</label>
+    <p class="muted">Linked, the stopwatch starts the moment you open the clamp and stops the moment you close it, so the interval you read is the one the water actually flowed for. Unlinked, you run both by hand. Reset is always by hand.</p>
   </div>
 
   <div class="next" style="margin:0 0 12px 0"><button class="ghost" data-goto="partd">Go to Part D</button></div>
@@ -197,7 +199,7 @@ const S={
   books:[], stool:false, stoolH:30, platformH:3.5, boardMass:420, bowlMass:300, bookRng:null,
   primed:false, placed:false, clamped:true, hook:0, trial:null, flowing:false, flowDir:0, flowT:0,
   scaleOn:true, scaleZero:0, scaleDisp:0, scaleIdleT:0, scaleLast:0, creep:0,
-  sw:{run:false,t:0,t0:0,base:0},
+  sw:{run:false,t:0,t0:0,base:0}, swLinked:true,
   look:'none', eye:0,
   drag:null, pouring:null, //pouring: 'src' | 'rec' | 'back'
   a:{srcV:0, recV:0, placed:false, t:0, legS:0, legR:0, crest:false, trial:null, drag:null, pouring:null},
@@ -290,7 +292,7 @@ function waterPath(cx,bottomY,topY,levelY,w){
 function drawBowl(svg,cx,bottomY,topY,levelY,w,label,floorY){
   svg.appendChild(el('path',{d:waterPath(cx,bottomY,topY,levelY,w),fill:'var(--water)',opacity:0.85}));
   svg.appendChild(el('path',{d:bowlPath(cx,bottomY,topY,w),fill:'none',stroke:'#1B2450','stroke-width':2}));
-  if(label) svg.appendChild(el('text',{x:cx,y:topY-5,'font-size':8,fill:'#747474','text-anchor':'middle'},label));
+  if(label) svg.appendChild(el('text',{x:cx,y:floorY+(label==='receiver'?27:11),'font-size':8,fill:'#747474','text-anchor':'middle'},label));
 }
 function drawJug(svg,x,y,tilt){
   const g=el('g',{transform:`translate(${x},${y}) rotate(${tilt})`});
@@ -324,11 +326,11 @@ function renderSceneB(){
   hitsB=[];
   const topCm=Math.max(42, apexH()+10, srcRim()+6, S.drag&&S.drag.type==='apex'?S.drag.y+10:0);
   const PX=3.3, FLOOR=topCm*PX+16; const y=cm=>FLOOR-cm*PX; geomB={PX,FLOOR,y};
-  svg.setAttribute('viewBox','0 0 360 '+(FLOOR+16));
-  svg.appendChild(el('rect',{x:0,y:0,width:360,height:FLOOR+16,fill:'transparent'}));
-  svg.appendChild(el('line',{x1:0,y1:FLOOR,x2:360,y2:FLOOR,stroke:'#747474','stroke-width':2}));
+  svg.setAttribute('viewBox','0 0 400 '+(FLOOR+34));
+  svg.appendChild(el('rect',{x:0,y:0,width:400,height:FLOOR+34,fill:'transparent'}));
+  svg.appendChild(el('line',{x1:0,y1:FLOOR,x2:400,y2:FLOOR,stroke:'#747474','stroke-width':2}));
   // floor puddle
-  if(S.floorPool>0){const w=Math.min(120,20+S.floorPool/8);svg.appendChild(el('ellipse',{cx:150,cy:FLOOR+6,rx:w,ry:4,fill:'var(--water)',opacity:0.5}));}
+  if(S.floorPool>0){const w=Math.min(110,20+S.floorPool/8);svg.appendChild(el('ellipse',{cx:200,cy:FLOOR+4,rx:w,ry:3,fill:'var(--water)',opacity:0.5}));}
   // tape
   const tx=14;
   svg.appendChild(el('rect',{x:tx-7,y:y(topCm),width:14,height:topCm*PX,fill:'#fff6c9',stroke:'#747474','stroke-width':1}));
@@ -336,15 +338,15 @@ function renderSceneB(){
   // sink
   drawSink(svg,32,6); hit(hitsB,'sink',32,0,50,36);
   // shelf at right: books and stool
-  const shelfX=330;
+  const shelfX=372;
   svg.appendChild(el('line',{x1:shelfX-20,y1:FLOOR,x2:shelfX+20,y2:FLOOR,stroke:'#8a7558','stroke-width':3}));
-  if(!S.stool){svg.appendChild(el('rect',{x:shelfX-16,y:FLOOR-26,width:32,height:26,fill:'#d9c4a3',stroke:'#8a7558'}));svg.appendChild(el('text',{x:shelfX,y:FLOOR-30,'font-size':7,fill:'#747474','text-anchor':'middle'},'stool'));hit(hitsB,'shelfStool',shelfX-18,FLOOR-34,36,34);}
+  if(!S.stool){svg.appendChild(el('rect',{x:shelfX-16,y:FLOOR-26,width:32,height:26,fill:'#d9c4a3',stroke:'#8a7558'}));svg.appendChild(el('text',{x:shelfX,y:FLOOR-10,'font-size':7,fill:'#5a4a33','text-anchor':'middle'},'stool'));hit(hitsB,'shelfStool',shelfX-18,FLOOR-34,36,34);}
   const shelfBookY=S.stool?FLOOR:FLOOR-30;
   for(let i=0;i<4;i++){svg.appendChild(el('rect',{x:shelfX-16,y:shelfBookY-8*(i+1)-2,width:32,height:7,fill:['#8C1D40','#1B2450','#1DB793','#747474'][i],stroke:'#fff','stroke-width':0.6}));}
   svg.appendChild(el('text',{x:shelfX,y:shelfBookY-40,'font-size':7,fill:'#747474','text-anchor':'middle'},'books'));
   hit(hitsB,'shelfBook',shelfX-18,shelfBookY-46,36,46);
   // scale, board, receiver
-  const rcx=120, bw=20*PX;
+  const rcx=135, bw=20*PX;
   const scaleY=y(S.platformH-1.2);
   svg.appendChild(el('rect',{x:rcx-46,y:scaleY,width:92,height:(S.platformH-1.2)*PX,fill:'#9aa3b8',rx:3}));
   // LCD and zero pad on the scale body, hanging below the platform front
@@ -363,7 +365,7 @@ function renderSceneB(){
   if(!recDragging){drawBowl(svg,rcx,rb,rt,y(recSurface()),bw,'receiver',FLOOR);hit(hitsB,'recWater',rcx-bw/2,y(recSurface())-8,bw,Math.max(10,rb-y(recSurface())+8));hit(hitsB,'recBowl',rcx-bw/2,rt,bw,rb-rt);}
   hit(hitsB,'recPour',rcx-bw/2-10,rt-70,bw+20,rb-rt+70,{low:true});
   // stack and source
-  const scx=255; let h=0;
+  const scx=290; let h=0;
   if(S.stool){svg.appendChild(el('rect',{x:scx-34,y:y(S.stoolH),width:68,height:S.stoolH*PX,fill:'#d9c4a3',stroke:'#8a7558'}));hit(hitsB,'stackStool',scx-34,y(S.stoolH),68,S.stoolH*PX);h=S.stoolH;}
   S.books.forEach((b,i)=>{const yy=y(h+b);svg.appendChild(el('rect',{x:scx-32+(i%2)*3,y:yy,width:64,height:b*PX,fill:['#8C1D40','#1B2450','#1DB793','#747474'][i%4],stroke:'#fff','stroke-width':0.8}));if(i===S.books.length-1)hit(hitsB,'topBook',scx-32,yy,64,b*PX);h+=b;});
   const srcDragging=S.drag&&S.drag.type==='srcBowl';
@@ -372,26 +374,30 @@ function renderSceneB(){
   hit(hitsB,'srcPour',scx-bw/2-10,st-70,bw+20,sb-st+70,{low:true});
   hit(hitsB,'stackZone',scx-50,y(srcRim()+10),100,FLOOR-y(srcRim()+10),{low:true});
   // hook
-  if(S.hook>naturalApex()){svg.appendChild(el('path',{d:`M${190},${y(S.hook)-12} v8 q0,6 6,6`,fill:'none',stroke:'#747474','stroke-width':2}));}
+  if(S.hook>naturalApex()){svg.appendChild(el('path',{d:`M${210},${y(S.hook)-12} v8 q0,6 6,6`,fill:'none',stroke:'#747474','stroke-width':2}));}
   // tube
   if(S.tube){
-    const ax=195, ay=y(apexH());
+    const ax=215, ay=y(apexH());
     if(S.placed){
       const sx=scx+10, sy=y(srcBottom()+0.5), rx=rcx-10, ry=y(recBottom()+0.5);
       const srx=y(srcRim()-1.5), rrx=y(recBottom()+BOWL_DEPTH+1.5);
       const d=`M${sx},${sy} L${sx},${srx} C${sx},${ay} ${ax+25},${ay} ${ax},${ay} C${ax-30},${ay} ${rx},${Math.min(rrx,ay+30)} ${rx},${rrx} L${rx},${ry}`;
       drawTube(svg,d,S.tube,S.primed,S.flowing,S.flowDir);
       // clamp sits on the receiver leg just below the apex
-      const cy=ay+22, cx=ax-24;
+      const cy=ay+34, cx=ax-40;
       svg.appendChild(el('rect',{x:cx-7,y:cy-6,width:14,height:12,fill:S.clamped?'#191919':'#9aa3b8',rx:2,stroke:'#191919'}));
-      svg.appendChild(el('text',{x:cx,y:cy+16,'font-size':7,fill:'#747474','text-anchor':'middle'},S.clamped?'clamped':'open'));
+      svg.appendChild(el('text',{x:cx+11,y:cy+3,'font-size':7,fill:'#747474','text-anchor':'start'},S.clamped?'clamped':'open'));
       hit(hitsB,'clamp',cx-14,cy-14,28,28); hit(hitsB,'apex',ax-22,ay-22,44,36);
     } else if(!(S.drag&&S.drag.type==='tube')){
-      const d=`M${165},${y(1)} C${165},${y(14)} ${215},${y(14)} ${215},${y(1)}`;
-      drawTube(svg,d,S.tube,S.primed,false,0); hit(hitsB,'tube',160,y(12),60,40);
-      svg.appendChild(el('text',{x:190,y:y(15),'font-size':8,fill:'#747474','text-anchor':'middle'},'tube'));
+      const d=`M${190},${y(1)} C${190},${y(14)} ${240},${y(14)} ${240},${y(1)}`;
+      drawTube(svg,d,S.tube,S.primed,false,0); hit(hitsB,'tube',185,y(12),60,40);
+      svg.appendChild(el('text',{x:215,y:FLOOR+11,'font-size':8,fill:'#747474','text-anchor':'middle'},'tube'));
     }
   }
+  // stopwatch readout in the corner, so time and scale are in one view
+  svg.appendChild(el('rect',{x:300,y:6,width:92,height:22,rx:4,fill:'#DDE6D5',stroke:'#556','stroke-width':2}));
+  svg.appendChild(el('text',{x:388,y:22,'font-size':13,'font-family':'Courier New, monospace','font-weight':'bold',fill:'#1a2a1a','text-anchor':'end'},swText()));
+  svg.appendChild(el('text',{x:346,y:38,'font-size':7,fill:'#747474','text-anchor':'middle'},S.swLinked?'stopwatch, linked to the clamp':'stopwatch'));
   // jug
   const jugHome={x:50,y:FLOOR-4};
   if(!(S.drag&&S.drag.type==='jug')){drawJug(svg,jugHome.x,jugHome.y,0);hit(hitsB,'jug',jugHome.x-14,jugHome.y-34,38,40);}
@@ -436,22 +442,22 @@ function wireSceneB(){
     const p=pointFromEvent(svg,e); const over=findHit(hitsB,p.x,p.y);
     const overId=over?over.id:null;
     if(!d.moved){ // tap
-      if(d.id==='clamp'){if(S.clamped){if(!S.placed)return;S.clamped=false;S.trial=drawTrialParams();S.flowT=0;bumpTrial();}else{S.clamped=true;}}
+      if(d.id==='clamp'){if(S.clamped){if(!S.placed)return;S.clamped=false;S.trial=drawTrialParams();S.flowT=0;bumpTrial();if(S.swLinked)swStart();}else{S.clamped=true;if(S.swLinked)swStop();}}
       else if(d.id==='zero'){if(S.scaleOn){S.scaleZero=trueLoad()+S.creep;S.scaleDisp=0;S.scaleIdleT=0;}}
       else if(d.id==='platform'){if(!S.scaleOn){S.scaleOn=true;S.scaleZero=trueLoad();S.scaleDisp=0;S.creep=0;}S.scaleIdleT=0;}
       else if(d.id==='srcWater'){S.look='src';} else if(d.id==='recWater'){S.look='rec';} else if(d.id==='apex'){S.look='apex';}
       return;
     }
     if(d.type==='book'){
-      const onStack=p.x>205&&p.x<305;
+      const onStack=p.x>240&&p.x<340;
       if(d.fromStack){ if(!onStack) S.books.pop(); }
       else if(onStack){ if(S.books.length<14) S.books.push(1.6+S.bookRng()*3.8); }
     } else if(d.type==='stool'){
-      const onStack=p.x>205&&p.x<305;
+      const onStack=p.x>240&&p.x<340;
       if(d.fromStack){ if(!onStack) S.stool=false; } else if(onStack){ S.stool=true; }
     } else if(d.type==='tube'){
       if(overId==='sink'){S.primed=true;S.clamped=true;flashStatus('bStatus','Tube filled under water and lifted out with both ends pinched.');}
-      else if(p.x>120&&p.x<290&&p.y<geomB.y(0)){
+      else if(p.x>130&&p.x<330&&p.y<geomB.y(0)){
         if(srcDepth()<0.8||recDepth()<0.8){flashStatus('bStatus','One of the tube ends would not be under water.');}
         else {S.placed=true;S.clamped=true;S.trial=null;}
       }
@@ -578,9 +584,11 @@ function renderTape(){
 }
 
 /* ===================== Render ===================== */
+function swText(){const t=S.sw.t, mm=Math.floor(t/60), ss=Math.floor(t%60), hh=Math.floor((t*100)%100);return String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0')+'.'+String(hh).padStart(2,'0');}
+function swStart(){if(S.sw.run)return;S.sw.run=true;S.sw.base=S.sw.t;S.sw.t0=performance.now();}
+function swStop(){S.sw.run=false;}
 function render(){
-  const t=S.sw.t, mm=Math.floor(t/60), ss=Math.floor(t%60), hh=Math.floor((t*100)%100);
-  document.getElementById('swLcd').textContent=String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0')+'.'+String(hh).padStart(2,'0');
+  document.getElementById('swLcd').textContent=swText();
   const active=document.querySelector('section.pane.on').id;
   if(active==='pane-partbc'){renderSceneB();renderTape();}
   if(active==='pane-parta'){renderSceneA();}
@@ -627,8 +635,9 @@ function selectTube(t){
   document.querySelectorAll('.pkg').forEach(p=>p.classList.toggle('on',p.dataset.key===t.key));
   flashStatus('tubeStatus','On the bench: '+t.name+', '+t.label.split('·')[0].trim()+'. Next: the Part A tab.');
 }
-document.getElementById('swStart').addEventListener('click',()=>{if(S.sw.run)return;S.sw.run=true;S.sw.base=S.sw.t;S.sw.t0=performance.now();});
-document.getElementById('swStop').addEventListener('click',()=>{S.sw.run=false;});
+document.getElementById('swStart').addEventListener('click',swStart);
+document.getElementById('swStop').addEventListener('click',swStop);
+document.getElementById('swLink').addEventListener('change',e=>{S.swLinked=e.target.checked;});
 document.getElementById('swReset').addEventListener('click',()=>{S.sw.run=false;S.sw.t=0;S.sw.base=0;});
 document.getElementById('eye').addEventListener('input',e=>{S.eye=parseFloat(e.target.value);});
 document.getElementById('lookClose').addEventListener('click',()=>{S.look='none';});
