@@ -1,277 +1,642 @@
-{
-  "meta": {
-    "course": "PHYSICS",
-    "cycle_title": "What Makes a Toilet Flush?",
-    "lab_title": "Moving Water Without a Pump",
-    "driving_question": "What makes a toilet flush, and why does it only work when the water goes in fast?",
-    "date_emitted": "2026-11-06",
-    "revision": "v2, engine calibrated against class data from the first submission set (8 usable of 18 reports) on 2026-11-06"
-  },
-  "setups": [
-    {
-      "setup_key": "tube_transfer_apparatus",
-      "setup_title": "Water transfer between two open containers through a filled tube",
-      "simulable": "partial",
-      "simulability_note": "Parts A, B and C preserve the cognitive pressure because the student still chooses heights, reads a ruler and a scale, and must decide for themselves whether an apparent change is real. Part D does not, because its entire value is the surprise of finding the tube still full, and a rendered animation hands that over rather than letting the student earn it. Part D is therefore withheld and the bench student gets it from classmates during the Session 2 review, which is when the whole class discusses it anyway.",
-      "legs": {
-        "part_a_priming": "simulable now",
-        "part_b_height_difference": "simulable now, calibrated",
-        "part_c_apex_height": "simulable now",
-        "part_d_equalisation": "withheld by design"
-      },
-      "archetype": "continuous_measurement",
-      "student_actions": [
-        "Choose an assigned tube inner diameter and read it as printed on the packaging, including the chance to read the outer diameter by mistake",
-        "Set the source container on a variable stack of books and read the resulting height difference off a ruler against the two water surfaces",
-        "Prime the tube, or leave it full of air for Part A",
-        "Read the starting mass off the scale, release the tube, start a timer",
-        "Close the tube at the end of the interval, read the ending height difference and the ending mass",
-        "Pour water back from receiver to source and repeat",
-        "Raise the middle of the tube to a chosen apex height and repeat the timed trial"
-      ],
-      "instruments": [
-        {
-          "key": "kitchen_scale",
-          "type": "digital_scale",
-          "precision": "1 g",
-          "accuracy": "about ±2 g, with 1 to 2 g of creep over a 60 s interval",
-          "analog": false
-        },
-        {
-          "key": "ruler",
-          "type": "linear_scale",
-          "precision": "marked every 0.1 cm",
-          "accuracy": "student interpolates against a water surface",
-          "analog": true
-        },
-        {
-          "key": "timer",
-          "type": "digital_stopwatch",
-          "precision": "0.01 s",
-          "accuracy": "human reaction, about ±0.2 s",
-          "analog": false
-        }
-      ],
-      "vessels": [
-        {
-          "key": "source_bowl",
-          "capacity": "at least 2 L, 20 cm across, 8 cm deep",
-          "graduated": false
-        },
-        {
-          "key": "receiver_bowl",
-          "capacity": "at least 2 L, 20 cm across, 8 cm deep",
-          "graduated": false
-        },
-        {
-          "key": "narrow_glass",
-          "capacity": "about 600 mL, 8 cm across, 12 cm tall",
-          "graduated": false
-        }
-      ],
-      "materials": [
-        {
-          "key": "tube_3_2",
-          "name": "Flexible tubing, 3.2 mm (1/8 inch) inner diameter",
-          "form": "1.5 m length",
-          "realistic_max": "1.5 m"
-        },
-        {
-          "key": "tube_4_8",
-          "name": "Flexible tubing, 4.8 mm (3/16 inch) inner diameter",
-          "form": "1.5 m length",
-          "realistic_max": "1.5 m"
-        },
-        {
-          "key": "tube_6_4",
-          "name": "Flexible tubing, 6.4 mm (1/4 inch) inner diameter",
-          "form": "1.5 m length",
-          "realistic_max": "1.5 m"
-        },
-        {
-          "key": "water",
-          "name": "Water, dyed with food coloring",
-          "form": "liquid",
-          "realistic_max": "3 L"
-        }
-      ],
-      "engine": {
-        "relationship": "Steady energy balance between the two free surfaces: g*dh = (f*L/D + K)*v^2/2, solved for v. Flow rate Q = v*A, collected mass m = rho*Q*t. The height difference falls during a trial as the source drops and the receiver rises, so the engine integrates dh over the interval rather than holding it fixed.",
-        "constants": [
-          {
-            "symbol": "rho",
-            "value": 1000,
-            "units": "kg/m^3",
-            "source": "Density of water at room temperature, CK-12 Chapter 5.6",
-            "confidence": "sourced"
-          },
-          {
-            "symbol": "g",
-            "value": 9.8,
-            "units": "m/s^2",
-            "source": "CK-12 Chapter 5.6",
-            "confidence": "sourced"
-          },
-          {
-            "symbol": "mu",
-            "value": 0.001,
-            "units": "Pa*s",
-            "source": "Dynamic viscosity of water at 20 C, standard tables",
-            "confidence": "sourced"
-          },
-          {
-            "symbol": "L",
-            "value": 1.5,
-            "units": "m",
-            "source": "Lab design parameter, specified in the student materials",
-            "confidence": "sourced"
-          },
-          {
-            "symbol": "K",
-            "value": 1.5,
-            "units": "dimensionless",
-            "source": "Entrance loss 0.5 plus exit velocity head 1.0, standard minor-loss tables",
-            "confidence": "estimated"
-          },
-          {
-            "symbol": "f_laminar",
-            "value": "64/Re",
-            "units": "dimensionless",
-            "source": "Hagen-Poiseuille, valid Re < 2000",
-            "confidence": "sourced"
-          },
-          {
-            "symbol": "f_turbulent",
-            "value": "0.316/Re^0.25",
-            "units": "dimensionless",
-            "source": "Blasius correlation, valid Re 4000 to 1e5",
-            "confidence": "sourced"
-          }
-        ],
-        "response_profile": "Scale reading climbs close to linearly during a trial, with a slight downward curvature as the height difference falls. Reading settles within about a second of the tube being closed.",
-        "estimated_parameters": [
-          {
-            "name": "regime_intermittency_in_transition",
-            "value": "For Re between 2000 and 4000 the friction factor is a per-trial blend of the laminar and Blasius values, weight = (Re-2000)/2000 plus a seeded normal offset of SD 0.35, clamped to 0 to 1. Below 2000 laminar, above 4000 Blasius. A seeded per-trial multiplier of 1 plus N(0, 0.03) is applied outside the band.",
-            "confidence": "bench_tested",
-            "note": "Fit to class data: same-height pairs split 20 to 40 percent for 4.5 to 4.8 mm tubes between Re 2000 and 3500 (students 2 and 8), and repeat within 3 to 5 percent for 6.4 mm above Re 3500 (student 18) and 4.3 mm below Re 2000 (student 16)."
-          },
-          {
-            "name": "scale_creep",
-            "value": "1 to 2 g over 60 s",
-            "confidence": "estimated"
-          },
-          {
-            "name": "buoyancy_shift_on_submerged_tube",
-            "value": "up to about 1 g, biasing collection high",
-            "confidence": "calculated"
-          },
-          {
-            "name": "bend_loss_at_apex",
-            "value": "K rises by 0.15 at 30 cm apex above the source surface, under 1 percent in flow rate",
-            "confidence": "estimated"
-          }
-        ],
-        "calculated_results": [
-          {
-            "name": "flow_rate_3_2mm_10cm_to_50cm",
-            "value": "1.6 mL/s rising to between 5.2 and 7.3 mL/s",
-            "confidence": "calculated"
-          },
-          {
-            "name": "flow_rate_4_8mm_10cm_to_50cm",
-            "value": "7.4 mL/s rising to 15.2 mL/s",
-            "confidence": "calculated"
-          },
-          {
-            "name": "flow_rate_6_4mm_10cm_to_50cm",
-            "value": "between 13.1 and 19.4 mL/s rising to 32.2 mL/s",
-            "confidence": "calculated"
-          },
-          {
-            "name": "reynolds_range_whole_apparatus",
-            "value": "648 at the bottom of the 3.2 mm range to 6407 at the top of the 6.4 mm range",
-            "confidence": "calculated"
-          },
-          {
-            "name": "transition_crossing_3_2mm",
-            "value": "about 33 cm height difference",
-            "confidence": "calculated"
-          },
-          {
-            "name": "collected_mass_range",
-            "value": "98 g at the weakest trial to 483 g at the strongest",
-            "confidence": "calculated"
-          },
-          {
-            "name": "apex_effect_on_velocity",
-            "value": "under 1 percent across the achievable 10 to 30 cm apex range, from bend losses only",
-            "confidence": "calculated"
-          },
-          {
-            "name": "free_fall_comparison_at_30cm",
-            "value": "2.42 m/s free fall against 0.57 to 0.75 m/s measured, a factor of 3.2 to 4.2",
-            "confidence": "calculated"
-          },
-          {
-            "name": "class_data_agreement",
-            "value": "Engine within about 10 percent of measured flow rate wherever the recorded inner diameter is trustworthy: student 18 (6.4 mm) ratio 1.03 to 1.16 over 11 to 46 cm; student 16 (4.3 mm) 0.95 to 1.12; student 2 (4.48 mm) 0.86 to 0.96 above 30 cm. Apex series flat for every student who ran it, to 76 cm.",
-            "confidence": "bench_tested"
-          }
-        ],
-        "blockers": [],
-        "resolved_blockers": [
-          {
-            "leg": "part_b_height_difference",
-            "issue": "Regime rule and trial-to-trial scatter inside the laminar to turbulent transition",
-            "resolution": "Settled by class data on 2026-11-06 rather than a bench run. See regime_intermittency_in_transition."
-          }
-        ]
-      },
-      "operating_ranges": {
-        "height_difference_cm": [
-          5,
-          60
-        ],
-        "apex_height_cm": [
-          0,
-          30
-        ],
-        "timing_interval_s": [
-          5,
-          180
-        ],
-        "source_water_depth_cm": [
-          2,
-          8
-        ],
-        "receiver_start_volume_mL": [
-          0,
-          1000
-        ]
-      },
-      "time_structure": {
-        "multi_day": false,
-        "slow_step": null,
-        "real_duration": null
-      },
-      "handed_over_observations": [
-        {
-          "observation": "Part A, the air filled tube with both ends submerged",
-          "narrative_given": "The student releases both ends and watches the colored water for thirty seconds, seeing where it travels inside each leg and where it comes to rest. The bench renders the motion and stops; it states no conclusion and draws no comparison between the two legs.",
-          "cost": "This student still has to get the freeboard right: if the source is filled within about 1 cm of the rim the column crests and transfer starts, which is the opposite result. What the bench hands over is the climb itself, rendered rather than discovered, and the tube arching over both rims is drawn for them."
-        }
-      ],
-      "withheld_observations": [
-        {
-          "observation": "Part D, the flow stopping with the tube still completely full once the two surfaces reach the same level",
-          "reason": "This is the discriminating evidence for the whole cycle. Its value is entirely in the surprise of a full tube of water sitting still, and rendering it converts an earned observation into a delivered one.",
-          "student_path": "Session 2 reviews this observation as a class at the 0:18 block, so a bench student hears it from classmates alongside their own Part A result. They will not be able to answer discussion question 5 from their own data, which should be treated as expected rather than as missing work."
-        }
-      ],
-      "expected_values": "Cross-check the engine against the teacher notes: flow rate rising by more than a factor of three across the full height range for the 3.2 mm tube; no measurable change across the apex series for any tube; collected masses between 98 g and 483 g at the assigned timing intervals; velocities between 0.20 and 1.00 m/s across all tubes and heights; Part A water rising in each leg to the level of the surface outside it and stopping short of the rim.",
-      "class_data_notes": "Dominant spread in the real data is recorded diameter, not physics: student 9 recorded 4.8 mm and fits 3.7 mm (outer diameter read as inner); student 12 recorded 3.2 mm and fits 4.0 mm (metric 6 x 4 mm airline tubing); student 10 recorded 4 mm and fits 5.7 mm. The packaging-label step in the bench reproduces this.",
-      "bench_file": "Moving_Water_Without_a_Pump_virtual_bench.html, generated 2026-11-06, seed format MWP-XXXXXX-NN where NN counts releases of the tube and Part A placements."
-    }
-  ]
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Moving Water Without a Pump: Virtual Lab Bench</title>
+<style>
+  :root{
+    --navy:#1B2450; --teal:#1DB793; --white:#FFFFFF;
+    --g1:#191919; --gray:#747474; --g5:#D0D0D0; --g6:#E8E8E8; --g7:#FAFAFA;
+    --water:#2E6FD8; --waterdeep:#1F4FA8;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; background:var(--g6); color:var(--navy); font-family:Arial, Helvetica, sans-serif; font-size:16px; line-height:1.45;}
+  .wrap{max-width:560px; margin:0 auto; padding:12px 12px 90px 12px;}
+  header.bench{background:var(--navy); color:var(--white); border-radius:10px; padding:14px 16px; margin-bottom:12px;}
+  .badge{display:inline-block; background:var(--teal); color:var(--white); font-weight:bold; font-size:11px; letter-spacing:2px; padding:3px 10px; border-radius:12px; margin-bottom:8px;}
+  header.bench h1{margin:0 0 6px 0; font-size:22px; line-height:1.2;}
+  header.bench p{margin:0; font-size:13px; color:#cdd3ea;}
+  #seedchip{position:fixed; top:8px; right:8px; z-index:50; background:var(--navy); color:var(--white); font-size:12px; font-weight:bold; letter-spacing:1px; padding:6px 10px; border-radius:8px; border:2px solid var(--teal); font-family:"Courier New", monospace;}
+  .card{background:var(--white); border:1px solid var(--g5); border-radius:10px; padding:14px; margin-bottom:12px;}
+  .card h2{margin:0 0 8px 0; font-size:16px; color:var(--navy); border-bottom:2px solid var(--teal); padding-bottom:5px;}
+  .card h3{margin:10px 0 6px 0; font-size:14px; color:var(--navy);}
+  .muted{color:var(--gray); font-size:13px;}
+  p{margin:6px 0;}
+  button{font-family:Arial, Helvetica, sans-serif; font-size:15px; border:none; border-radius:8px; padding:11px 14px; margin:4px 4px 4px 0; cursor:pointer; background:var(--navy); color:var(--white); touch-action:none; user-select:none; -webkit-user-select:none;}
+  button.teal{background:var(--teal);}
+  button.ghost{background:var(--g7); color:var(--navy); border:1px solid var(--g5);}
+  button.hold{background:var(--teal);}
+  button.hold.active{background:#139a7a;}
+  button:disabled{background:var(--g5); color:var(--gray); cursor:default;}
+  input[type=text], input[type=date]{width:100%; font-size:16px; padding:10px; border:1px solid var(--g5); border-radius:8px; font-family:Arial, Helvetica, sans-serif; margin-bottom:8px;}
+  input[type=range]{width:100%; margin:8px 0;}
+  label{font-size:14px; display:block; margin-top:6px;}
+  .row{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+  nav.tabs{display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap;}
+  nav.tabs button{flex:1 1 auto; background:var(--g7); color:var(--navy); border:1px solid var(--g5); padding:10px 8px; font-size:14px; margin:0;}
+  nav.tabs button.on{background:var(--navy); color:var(--white); border-color:var(--navy);}
+  section.pane{display:none;} section.pane.on{display:block;}
+  .instr{display:flex; gap:10px; flex-wrap:wrap; align-items:flex-start;}
+  .lcd{background:#DDE6D5; color:#1a2a1a; font-family:"Courier New", monospace; font-size:30px; font-weight:bold; letter-spacing:2px; padding:8px 12px; border-radius:6px; border:3px solid #556; min-width:150px; text-align:right;}
+  .lcd.off{color:#c3cdb9;}
+  .lcd small{font-size:14px; letter-spacing:0;}
+  .pkg{display:flex; gap:10px; align-items:center; border:1px solid var(--g5); border-radius:8px; padding:8px; margin-bottom:8px; background:var(--g7);}
+  .pkg.on{border:2px solid var(--teal);}
+  .pkg .lab{flex:1; font-size:13px;}
+  .pkg .lab b{display:block; font-size:14px;}
+  svg.scene{width:100%; height:auto; display:block; background:var(--g7); border:1px solid var(--g5); border-radius:8px;}
+  .status{font-size:13px; color:var(--gray); margin-top:6px; min-height:18px;}
+  .flash{animation:flash 0.5s;}
+  @keyframes flash{0%{background:#d8f5ec;}100%{background:var(--white);}}
+  .readwin{margin-top:8px; display:none;}
+  .readwin.on{display:block;}
+  .gate{margin-top:20px;}
+  .note{background:var(--g7); border-left:4px solid var(--teal); padding:8px 10px; font-size:14px; margin:8px 0;}
+</style>
+</head>
+<body>
+<div id="seedchip" hidden>MWP-000000-00</div>
+<div class="wrap">
+
+<header class="bench">
+  <span class="badge">PHYSICS</span>
+  <h1>Moving Water Without a Pump<br>Virtual Lab Bench</h1>
+  <p>This bench is for students who could not get hold of the materials. If you can build the real apparatus, do that instead. The real version is the better experience and the one we prefer. Keep your lab document open next to this page and record every reading there, exactly as you would at a real bench. Nothing here is checked, corrected, or scored.</p>
+</header>
+
+<!-- GATE -->
+<div id="gate" class="card gate">
+  <h2>Start your session</h2>
+  <p class="muted">Your name and today's date set up your bench. The code at the top right of the screen belongs to your session. Include a screenshot that shows it in your lab report where the name and date photo would otherwise go.</p>
+  <label for="nm">Your name</label>
+  <input type="text" id="nm" placeholder="Last, First" autocomplete="off">
+  <label for="dt">Today's date</label>
+  <input type="date" id="dt">
+  <button class="teal" id="startBtn">Open the bench</button>
+</div>
+
+<div id="bench" hidden>
+<nav class="tabs">
+  <button data-pane="tube" class="on">Tubing</button>
+  <button data-pane="parta">Part A</button>
+  <button data-pane="partbc">Parts B and C</button>
+  <button data-pane="partd">Part D</button>
+</nav>
+
+<!-- TUBING -->
+<section class="pane on" id="pane-tube">
+  <div class="card">
+    <h2>Choose your tubing</h2>
+    <p class="muted">Three packages are on the table. Read the label the way you would in a store. Tap one to take it to the bench. You can swap at any time; swapping empties the tube.</p>
+    <div id="pkgs"></div>
+    <div class="status" id="tubeStatus">No tubing on the bench yet.</div>
+  </div>
+</section>
+
+<!-- PART A -->
+<section class="pane" id="pane-parta">
+  <div class="card">
+    <h2>Two bowls on the floor</h2>
+    <p class="muted">Both wide bowls sit side by side on the same flat surface. The bowls are 20 cm across and 8 cm deep. Hold a pour button to add colored water.</p>
+    <svg class="scene" id="sceneA" viewBox="0 0 360 200"></svg>
+    <div class="row" style="margin-top:8px">
+      <button class="hold" data-hold="pourA_src">Hold: pour into left bowl</button>
+      <button class="hold" data-hold="pourA_rec">Hold: pour into right bowl</button>
+    </div>
+    <div class="row">
+      <button class="ghost" id="aEmpty">Empty both bowls</button>
+    </div>
+    <h3>The air-filled tube</h3>
+    <p class="muted">The tube is dry and full of air. Put one end into each bowl, over the rims, and let go. Watch for at least thirty seconds.</p>
+    <div class="row">
+      <button id="aPlace">Put the tube in both bowls and let go</button>
+      <button class="ghost" id="aRemove">Take the tube out</button>
+    </div>
+    <div class="status" id="aStatus"></div>
+  </div>
+</section>
+
+<!-- PARTS B AND C -->
+<section class="pane" id="pane-partbc">
+  <div class="card">
+    <h2>The bench</h2>
+    <p class="muted">Receiver bowl on a board on the scale, at left. Source bowl on a stack, at right. A tape measure stands on the floor beside them with its zero at floor level. The drawing is to scale.</p>
+    <svg class="scene" id="sceneB" viewBox="0 0 360 330"></svg>
+    <div class="status" id="bStatus"></div>
+  </div>
+
+  <div class="card">
+    <h2>Water</h2>
+    <div class="row">
+      <button class="hold" data-hold="pour_src">Hold: pour into source</button>
+      <button class="hold" data-hold="pour_rec">Hold: pour into receiver</button>
+    </div>
+    <div class="row">
+      <button class="hold" data-hold="pour_back">Hold: pour receiver back into source</button>
+    </div>
+    <div class="row">
+      <button class="ghost" id="emptySrc">Empty source</button>
+      <button class="ghost" id="emptyRec">Empty receiver</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Raise the source</h2>
+    <p class="muted">Books come off the shelf in whatever thickness they are. A low stool is also available.</p>
+    <div class="row">
+      <button id="addBook">Add a book</button>
+      <button class="ghost" id="rmBook">Remove the top book</button>
+      <button class="ghost" id="stoolBtn">Put the stool under the stack</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Tube</h2>
+    <div class="row">
+      <button id="primeBtn">Submerge the tube in the sink to fill it</button>
+    </div>
+    <div class="row">
+      <button id="placeBtn">Put the ends in the bowls</button>
+      <button class="ghost" id="liftBtn">Lift the tube out</button>
+    </div>
+    <div class="row">
+      <button class="teal" id="releaseBtn">Release the ends</button>
+      <button id="clampBtn">Clamp the tube</button>
+    </div>
+    <h3>Hang the tube</h3>
+    <p class="muted">Drag to raise or lower the hook the middle of the tube hangs from. All the way left, the tube just drapes over the rim of the source bowl.</p>
+    <input type="range" id="hook" min="0" max="90" value="0" step="0.5" aria-label="Hook height">
+    <div class="status" id="tubeState"></div>
+  </div>
+
+  <div class="card">
+    <h2>Instruments</h2>
+    <div class="instr">
+      <div>
+        <div class="muted">Kitchen scale</div>
+        <div class="lcd" id="scaleLcd">----<small> g</small></div>
+        <div class="row">
+          <button class="ghost" id="scaleTap">Tap the platform</button>
+          <button class="ghost" id="scaleTare">Zero</button>
+        </div>
+      </div>
+      <div>
+        <div class="muted">Stopwatch</div>
+        <div class="lcd" id="swLcd">00:00.00</div>
+        <div class="row">
+          <button id="swStart">Start</button>
+          <button id="swStop">Stop</button>
+          <button class="ghost" id="swReset">Reset</button>
+        </div>
+      </div>
+    </div>
+    <h3>Tape measure</h3>
+    <p class="muted">Pick what to look at. The window shows the tape next to it, magnified. Slide the eye control to change where your eye is relative to the mark.</p>
+    <div class="row">
+      <button class="ghost" data-look="src">Source surface</button>
+      <button class="ghost" data-look="rec">Receiver surface</button>
+      <button class="ghost" data-look="apex">Top of the tube</button>
+      <button class="ghost" data-look="none">Put the tape down</button>
+    </div>
+    <div class="readwin" id="readwin">
+      <div class="row" style="align-items:flex-start">
+        <svg id="tapeSvg" viewBox="0 0 150 300" style="width:150px;height:300px;background:var(--g7);border:1px solid var(--g5);border-radius:8px"></svg>
+        <div style="flex:1;min-width:140px">
+          <label for="eye">Eye position</label>
+          <input type="range" id="eye" min="-3" max="3" value="0" step="0.1" aria-label="Eye position">
+          <div class="muted">Centered is level with the mark. Up moves your eye above it, down below it.</div>
+          <div class="status" id="lookStatus"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PART D -->
+<section class="pane" id="pane-partd">
+  <div class="card">
+    <h2>Part D</h2>
+    <p>Part D is not included on this bench. You will go over it as a class during the review session, and you can take your notes for the Part D questions from that discussion. Leave the Part D spaces in your report for now.</p>
+  </div>
+</section>
+</div><!-- bench -->
+</div><!-- wrap -->
+
+<script>
+(function(){
+'use strict';
+/* ===================== Seeded randomness ===================== */
+function fnv(str){let h=0x811c9dc5;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,0x01000193)>>>0;}return h>>>0;}
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function gauss(r){let u=0,v=0;while(u===0)u=r();while(v===0)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+let seedHash=0, seedCode='', trialCount=0, baseRng=null;
+function seedString(){return 'MWP-'+seedCode+'-'+String(trialCount).padStart(2,'0');}
+function trialRng(){return mulberry32((seedHash ^ Math.imul(trialCount+1,2654435761))>>>0);}
+function bumpTrial(){trialCount++;document.getElementById('seedchip').textContent=seedString();}
+
+/* ===================== Physics engine ===================== */
+const RHO=1000, G=9.8, MU=0.001, L=1.5, K0=1.5;
+const BOWL_AREA=314;          // cm^2, 20 cm across
+const BOWL_DEPTH=8;           // cm
+const BOWL_CAP=BOWL_AREA*BOWL_DEPTH; // mL
+const TUBES=[
+  {key:'t32', id:3.2, od:4.8,  name:'Aquarium airline tubing', label:'3/16 in  ·  Standard airline tubing  ·  Clear, flexible  ·  1.5 m', color:'#e9eef7'},
+  {key:'t48', id:4.8, od:7.9,  name:'Clear vinyl tubing', label:'5/16 in OD × 3/16 in ID  ·  Food grade vinyl  ·  1.5 m', color:'#eef7f1'},
+  {key:'t64', id:6.4, od:9.5,  name:'Clear vinyl tubing', label:'3/8 in OD × 1/4 in ID  ·  Food grade vinyl  ·  1.5 m', color:'#f7f1ee'},
+];
+// velocity through the tube for a head dh (m), with per-trial regime factor gamma and multiplier k
+function velocity(dh, D, gamma, k, Kextra){
+  if(dh<=0) return 0;
+  let v=0.3;
+  for(let i=0;i<40;i++){
+    const Re=RHO*v*D/MU;
+    const fl=64/Math.max(Re,1), ft=0.316/Math.pow(Math.max(Re,1),0.25);
+    let f;
+    if(Re<2000) f=fl; else if(Re>4000) f=ft; else f=(1-gamma)*fl+gamma*ft;
+    const vn=Math.sqrt(2*G*dh/(f*L/D+K0+Kextra));
+    v=0.5*v+0.5*vn;
+  }
+  return v*k;
 }
+function flowRate_mLs(dh_m, D_m, gamma, k, Kextra){ // mL/s
+  const v=velocity(dh_m,D_m,gamma,k,Kextra);
+  return v*Math.PI*D_m*D_m/4*1e6;
+}
+// draw a trial's regime factor: position in the band plus scatter, seeded
+function drawTrialParams(){
+  const r=trialRng();
+  return {gammaOff:gauss(r)*0.35, k:1+gauss(r)*0.03};
+}
+
+/* ===================== Bench state ===================== */
+const S={
+  tube:null,
+  // Parts B and C
+  srcV:0, recV:0,            // mL
+  books:[], stool:false, stoolH:30, platformH:3.5, boardMass:420, bowlMass:300,
+  primed:false, placed:false, clamped:true, released:false,
+  hook:0, trial:null, flowing:false, flowDir:0,
+  scaleOn:true, scaleZero:0, scaleDisp:0, scaleIdleT:0, scaleLast:0, creep:0, flowT:0,
+  sw:{run:false,t:0,t0:0,base:0},
+  look:'none', eye:0,
+  // Part A
+  a:{srcV:0, recV:0, placed:false, t:0, legS:0, legR:0, crest:false, flowing:false, trial:null},
+};
+function srcDepth(){return S.srcV/BOWL_AREA;}
+function recDepth(){return S.recV/BOWL_AREA;}
+function stackH(){return (S.stool?S.stoolH:0)+S.books.reduce((a,b)=>a+b,0);}
+function srcBottom(){return stackH()+0.3;}
+function srcSurface(){return srcBottom()+srcDepth();}
+function srcRim(){return srcBottom()+BOWL_DEPTH;}
+function recBottom(){return S.platformH+0.3;}
+function recSurface(){return recBottom()+recDepth();}
+function naturalApex(){return srcRim()+1.0;}
+function apexH(){return Math.max(naturalApex(), S.hook);}
+function apexAboveSrc(){return apexH()-srcSurface();}
+function dh_cm(){return srcSurface()-recSurface();}
+
+/* ===================== Time loop ===================== */
+let lastT=performance.now(), held=null, lookDirty=true;
+function loop(now){
+  const dt=Math.min(0.1,(now-lastT)/1000); lastT=now;
+  stepHold(dt);
+  stepFlow(dt);
+  stepPartA(dt);
+  stepScale(dt);
+  stepStopwatch(now);
+  render();
+  requestAnimationFrame(loop);
+}
+const POUR_RATE=180; // mL/s from a jug
+function stepHold(dt){
+  if(!held) return;
+  const d=POUR_RATE*dt;
+  if(held==='pour_src'){S.srcV=Math.min(BOWL_CAP,S.srcV+d);}
+  else if(held==='pour_rec'){S.recV=Math.min(BOWL_CAP,S.recV+d);}
+  else if(held==='pour_back'){const q=Math.min(d,S.recV,BOWL_CAP-S.srcV);S.recV-=q;S.srcV+=q;}
+  else if(held==='pourA_src'){S.a.srcV=Math.min(BOWL_CAP,S.a.srcV+d);}
+  else if(held==='pourA_rec'){S.a.recV=Math.min(BOWL_CAP,S.a.recV+d);}
+}
+function stepFlow(dt){
+  S.flowing=false; S.flowDir=0;
+  if(!(S.tube && S.primed && S.placed && !S.clamped)) {S.flowT=0;return;}
+  const dh=dh_cm();
+  // tube end exposed: the siphon breaks and air gets in
+  if(dh>0 && srcDepth()<0.8){S.primed=false;S.released=false;flashStatus('bStatus','The source end came out of the water. Air got into the tube.');return;}
+  if(dh<0 && recDepth()<0.8){S.primed=false;S.released=false;flashStatus('bStatus','The receiver end came out of the water. Air got into the tube.');return;}
+  if(Math.abs(dh)<0.02) return;
+  if(!S.trial) S.trial=drawTrialParams();
+  const D=S.tube.id/1000;
+  const Kextra=0.15*Math.max(0,apexAboveSrc())/30;
+  // regime factor from the laminar branch Reynolds estimate
+  const vL=velocity(Math.abs(dh)/100,D,0,1,Kextra);
+  const Re=RHO*vL*D/MU;
+  let gamma=(Re-2000)/2000+S.trial.gammaOff; gamma=Math.max(0,Math.min(1,gamma));
+  const q=flowRate_mLs(Math.abs(dh)/100,D,gamma,S.trial.k,Kextra); // mL/s
+  const dV=Math.min(q*dt, dh>0?S.srcV:S.recV);
+  if(dh>0){S.srcV-=dV;S.recV=Math.min(BOWL_CAP,S.recV+dV);S.flowDir=1;}
+  else{S.recV-=dV;S.srcV=Math.min(BOWL_CAP,S.srcV+dV);S.flowDir=-1;}
+  S.flowing=true; S.flowT+=dt;
+}
+/* ---- scale ---- */
+function trueLoad(){
+  let m=S.boardMass+S.bowlMass+S.recV;
+  if(S.placed && S.tube){ // tube end sits 0.5 cm above the bowl bottom; buoyancy on the submerged length
+    const sub=Math.max(0,recDepth()-0.5);
+    m+=Math.PI*Math.pow(S.tube.od/20,2)*sub; // cm^2 * cm = mL ≈ g
+  }
+  return m;
+}
+function stepScale(dt){
+  const t=trueLoad();
+  if(Math.abs(t-S.scaleLast)<2){S.scaleIdleT+=dt;} else {S.scaleIdleT=0;S.scaleLast=t;}
+  if(S.scaleOn && S.scaleIdleT>120){S.scaleOn=false;}
+  // creep: climbs toward about 1.6 g while water is flowing in, relaxes afterward
+  const target=S.flowing?1.6*(1-Math.exp(-S.flowT/45)):0;
+  S.creep+= (target-S.creep)*Math.min(1,dt/(S.flowing?1:20));
+  const want=t-S.scaleZero+S.creep;
+  S.scaleDisp+=(want-S.scaleDisp)*Math.min(1,dt/0.3); // settles within about a second
+}
+function scaleReading(){
+  if(!S.scaleOn) return null;
+  const tick=Math.floor(performance.now()/350);
+  const r=mulberry32((seedHash^tick)>>>0)();
+  const flick=(r<0.08)?1:(r<0.16?-1:0); // last-digit wander
+  return Math.round(S.scaleDisp)+flick;
+}
+/* ---- stopwatch ---- */
+function stepStopwatch(now){ if(S.sw.run) S.sw.t=S.sw.base+(now-S.sw.t0)/1000; }
+
+/* ===================== Part A ===================== */
+function stepPartA(dt){
+  const a=S.a;
+  if(!a.placed) return;
+  a.t+=dt;
+  const sD=a.srcV/BOWL_AREA, rD=a.recV/BOWL_AREA;
+  const ease=1-Math.exp(-a.t/2.2);
+  a.legS=sD*ease; a.legR=rD*ease;
+  if(!a.crest && a.t>4 && (BOWL_DEPTH-sD)<1.0 && sD>rD+0.3){a.crest=true; a.trial=drawTrialParams();}
+  if(a.crest && S.tube){
+    const dh=sD-rD; if(dh<=0.02){a.flowing=false;return;}
+    const D=S.tube.id/1000;
+    const vL=velocity(dh/100,D,0,1,0); const Re=RHO*vL*D/MU;
+    const gamma=Math.max(0,Math.min(1,(Re-2000)/2000+a.trial.gammaOff));
+    const q=flowRate_mLs(dh/100,D,gamma,a.trial.k,0);
+    const dV=Math.min(q*dt,a.srcV); a.srcV-=dV; a.recV=Math.min(BOWL_CAP,a.recV+dV); a.flowing=true;
+  }
+}
+
+/* ===================== Rendering ===================== */
+const NS='http://www.w3.org/2000/svg';
+function el(n,attrs,txt){const e=document.createElementNS(NS,n);for(const k in attrs)e.setAttribute(k,attrs[k]);if(txt!=null)e.textContent=txt;return e;}
+function bowlPath(cx,bottomY,topY,w){ // flared bowl outline
+  const hw=w/2, bw=w*0.36;
+  return `M${cx-hw},${topY} L${cx-bw},${bottomY} L${cx+bw},${bottomY} L${cx+hw},${topY}`;
+}
+function waterPath(cx,bottomY,topY,levelY,w){
+  if(levelY>=bottomY) return '';
+  const hw=w/2,bw=w*0.36;
+  const frac=(bottomY-levelY)/(bottomY-topY);
+  const wl=bw+(hw-bw)*frac;
+  return `M${cx-wl},${levelY} L${cx-bw},${bottomY} L${cx+bw},${bottomY} L${cx+wl},${levelY} Q${cx},${levelY+2} ${cx-wl},${levelY} Z`;
+}
+function renderSceneB(){
+  const svg=document.getElementById('sceneB'); while(svg.firstChild)svg.removeChild(svg.firstChild);
+  const topCm=Math.max(40, apexH()+10, srcRim()+6);
+  const PX=3.3, FLOOR=topCm*PX+12; const y=cm=>FLOOR-cm*PX;
+  svg.setAttribute('viewBox','0 0 360 '+(FLOOR+14));
+  svg.appendChild(el('line',{x1:0,y1:FLOOR,x2:360,y2:FLOOR,stroke:'#747474','stroke-width':2}));
+  // tape measure at left
+  const tx=22;
+  svg.appendChild(el('rect',{x:tx-7,y:y(topCm),width:14,height:topCm*PX,fill:'#fff6c9',stroke:'#747474','stroke-width':1}));
+  for(let c=0;c<=topCm;c+=1){
+    const len=c%10===0?10:(c%5===0?7:4);
+    svg.appendChild(el('line',{x1:tx-7,y1:y(c),x2:tx-7+len,y2:y(c),stroke:'#191919','stroke-width':c%10===0?1.2:0.6}));
+    if(c%10===0&&c>0) svg.appendChild(el('text',{x:tx+10,y:y(c)+3,'font-size':7,fill:'#191919','text-anchor':'start'},String(c)));
+  }
+  // scale and board, receiver
+  const rcx=120, bw=20*PX;
+  svg.appendChild(el('rect',{x:rcx-40,y:y(S.platformH-1.2),width:80,height:(S.platformH-1.2)*PX,fill:'#9aa3b8',rx:3}));
+  svg.appendChild(el('rect',{x:rcx-bw/2-6,y:y(S.platformH),width:bw+12,height:1.2*PX,fill:'#c9a97a'}));
+  const rb=y(recBottom()), rt=y(recBottom()+BOWL_DEPTH);
+  svg.appendChild(el('path',{d:waterPath(rcx,rb,rt,y(recSurface()),bw),fill:'var(--water)',opacity:0.85}));
+  svg.appendChild(el('path',{d:bowlPath(rcx,rb,rt,bw),fill:'none',stroke:'#1B2450','stroke-width':2}));
+  svg.appendChild(el('text',{x:rcx,y:FLOOR+10,'font-size':9,fill:'#747474','text-anchor':'middle'},'receiver on scale'));
+  // stack and source
+  const scx=270; let h=0;
+  if(S.stool){svg.appendChild(el('rect',{x:scx-34,y:y(S.stoolH),width:68,height:S.stoolH*PX,fill:'#d9c4a3',stroke:'#8a7558'}));h=S.stoolH;}
+  S.books.forEach((b,i)=>{svg.appendChild(el('rect',{x:scx-32+(i%2)*3,y:y(h+b),width:64,height:b*PX,fill:i%3===0?'#8C1D40':(i%3===1?'#1B2450':'#1DB793'),stroke:'#fff','stroke-width':0.8}));h+=b;});
+  const sb=y(srcBottom()), st=y(srcBottom()+BOWL_DEPTH);
+  svg.appendChild(el('path',{d:waterPath(scx,sb,st,y(srcSurface()),bw),fill:'var(--water)',opacity:0.85}));
+  svg.appendChild(el('path',{d:bowlPath(scx,sb,st,bw),fill:'none',stroke:'#1B2450','stroke-width':2}));
+  svg.appendChild(el('text',{x:scx,y:FLOOR+10,'font-size':9,fill:'#747474','text-anchor':'middle'},'source'));
+  // hook
+  if(S.hook>naturalApex()){svg.appendChild(el('path',{d:`M${195},${y(S.hook)-12} v8 q0,6 6,6`,fill:'none',stroke:'#747474','stroke-width':2}));}
+  // tube
+  if(S.tube){
+    const ax=200, ay=y(apexH());
+    const stroke=S.tube.od*0.9+1;
+    let d;
+    if(S.placed){
+      const sx=scx+10, sy=y(srcBottom()+0.5), rx=rcx-10, ry=y(recBottom()+0.5);
+      const srx=y(srcRim()-1.5), rrx=y(recBottom()+BOWL_DEPTH+1.5);
+      d=`M${sx},${sy} L${sx},${srx} C${sx},${ay} ${ax+25},${ay} ${ax},${ay} C${ax-30},${ay} ${rx},${Math.min(rrx,ay+30)} ${rx},${rrx} L${rx},${ry}`;
+    } else {
+      d=`M${330},${y(2)} C${330},${y(40)} ${300},${y(40)} ${290},${y(2)}`;
+    }
+    svg.appendChild(el('path',{d,fill:'none',stroke:'#4b556b','stroke-width':stroke+2,'stroke-linecap':'round'}));
+    svg.appendChild(el('path',{d,fill:'none',stroke:S.primed?'var(--waterdeep)':'#f3f3f3','stroke-width':stroke,'stroke-linecap':'round'}));
+    if(S.flowing){
+      const off=-(performance.now()/40)%24;
+      svg.appendChild(el('path',{d,fill:'none',stroke:'#9ec5ff','stroke-width':Math.max(1,stroke-2),'stroke-dasharray':'6 18','stroke-dashoffset':S.flowDir>0?off:-off,'stroke-linecap':'round'}));
+    }
+    if(S.placed && S.clamped){svg.appendChild(el('rect',{x:ax-6,y:ay-7,width:12,height:14,fill:'#191919',rx:2}));}
+  }
+  // tube state text
+  let ts='No tubing on the bench.';
+  if(S.tube){ts=(S.primed?'Tube is full of water. ':'Tube is full of air. ')+(S.placed?'Ends are in the bowls. ':'Tube is lying on the table. ')+(S.placed?(S.clamped?'Clamped.':'Open.'):'');}
+  document.getElementById('tubeState').textContent=ts;
+}
+function renderSceneA(){
+  const svg=document.getElementById('sceneA'); while(svg.firstChild)svg.removeChild(svg.firstChild);
+  const PX=14, FLOOR=190; const y=cm=>FLOOR-cm*PX; const bw=20*4.2;
+  svg.appendChild(el('line',{x1:0,y1:FLOOR,x2:360,y2:FLOOR,stroke:'#747474','stroke-width':2}));
+  const a=S.a, lx=110, rx=250, bb=y(0.3), bt=y(0.3+BOWL_DEPTH);
+  const sS=0.3+a.srcV/BOWL_AREA, rS=0.3+a.recV/BOWL_AREA;
+  svg.appendChild(el('path',{d:waterPath(lx,bb,bt,y(sS),bw),fill:'var(--water)',opacity:0.85}));
+  svg.appendChild(el('path',{d:bowlPath(lx,bb,bt,bw),fill:'none',stroke:'#1B2450','stroke-width':2}));
+  svg.appendChild(el('path',{d:waterPath(rx,bb,bt,y(rS),bw),fill:'var(--water)',opacity:0.85}));
+  svg.appendChild(el('path',{d:bowlPath(rx,bb,bt,bw),fill:'none',stroke:'#1B2450','stroke-width':2}));
+  svg.appendChild(el('text',{x:lx,y:FLOOR+9,'font-size':9,fill:'#747474','text-anchor':'middle'},'left bowl'));
+  svg.appendChild(el('text',{x:rx,y:FLOOR+9,'font-size':9,fill:'#747474','text-anchor':'middle'},'right bowl'));
+  // ticks on left bowl wall to show depth without numbers
+  if(a.placed && S.tube){
+    const apexY=y(BOWL_DEPTH+0.3+1.2), stroke=S.tube.od*0.7+1;
+    const sx=lx+12, ex=rx-12, by=y(0.8);
+    const legTop=cm=>y(0.8+cm);
+    // tube outline: two legs and an arch
+    const d=`M${sx},${by} L${sx},${legTop(BOWL_DEPTH+0.6)} Q${sx},${apexY} ${(sx+ex)/2},${apexY} Q${ex},${apexY} ${ex},${legTop(BOWL_DEPTH+0.6)} L${ex},${by}`;
+    svg.appendChild(el('path',{d,fill:'none',stroke:'#4b556b','stroke-width':stroke+2,'stroke-linecap':'round'}));
+    svg.appendChild(el('path',{d,fill:'none',stroke:'#f3f3f3','stroke-width':stroke,'stroke-linecap':'round'}));
+    if(a.crest){
+      svg.appendChild(el('path',{d,fill:'none',stroke:'var(--waterdeep)','stroke-width':stroke,'stroke-linecap':'round'}));
+    } else {
+      // water columns in each leg, with a curved leading edge
+      const colS=`M${sx},${by} L${sx},${legTop(a.legS)}`, colR=`M${ex},${by} L${ex},${legTop(a.legR)}`;
+      svg.appendChild(el('path',{d:colS,stroke:'var(--waterdeep)','stroke-width':stroke,'stroke-linecap':'butt'}));
+      svg.appendChild(el('path',{d:colR,stroke:'var(--waterdeep)','stroke-width':stroke,'stroke-linecap':'butt'}));
+      const r=stroke/2;
+      svg.appendChild(el('path',{d:`M${sx-r},${legTop(a.legS)} q${r},${-r*1.1} ${2*r},0`,fill:'var(--waterdeep)',stroke:'none'}));
+      svg.appendChild(el('path',{d:`M${ex-r},${legTop(a.legR)} q${r},${-r*1.1} ${2*r},0`,fill:'var(--waterdeep)',stroke:'none'}));
+    }
+  } else if(S.tube){
+    const d=`M300,${y(0.5)} C300,${y(5)} 340,${y(5)} 340,${y(0.5)}`;
+    svg.appendChild(el('path',{d,fill:'none',stroke:'#4b556b','stroke-width':S.tube.od*0.7+3,'stroke-linecap':'round'}));
+    svg.appendChild(el('path',{d,fill:'none',stroke:'#f3f3f3','stroke-width':S.tube.od*0.7+1,'stroke-linecap':'round'}));
+  }
+  let s='';
+  if(!S.tube) s='Pick your tubing on the Tubing tab first.';
+  else if(a.placed) s='Tube is in place. Watch.';
+  document.getElementById('aStatus').textContent=s;
+}
+function renderTape(){
+  const win=document.getElementById('readwin');
+  if(S.look==='none'){win.classList.remove('on');return;}
+  win.classList.add('on');
+  const svg=document.getElementById('tapeSvg'); while(svg.firstChild)svg.removeChild(svg.firstChild);
+  let level, what;
+  if(S.look==='src'){level=srcSurface();what='water surface in the source';}
+  else if(S.look==='rec'){level=recSurface();what='water surface in the receiver';}
+  else {level=apexH();what='top of the tube';}
+  if(S.look!=='apex' && (S.look==='src'?srcDepth():recDepth())<=0){level=S.look==='src'?srcBottom():recBottom();what+=' (the bowl is empty)';}
+  // slight surface wobble while flowing
+  let wob=0; if(S.flowing&&S.look!=='apex'){wob=0.04*Math.sin(performance.now()/180);}
+  const apparent=level+wob+0.35*S.eye; // parallax shifts where the mark seems to sit on the tape
+  const PXcm=52, mid=150; const y=cm=>mid-(cm-apparent)*PXcm;
+  svg.appendChild(el('rect',{x:30,y:0,width:60,height:300,fill:'#fff6c9'}));
+  const lo=Math.floor((apparent-3)*10), hi=Math.ceil((apparent+3)*10);
+  for(let m=lo;m<=hi;m++){
+    if(m<0) continue;
+    const cm=m/10, yy=y(cm); if(yy<0||yy>300) continue;
+    const len=m%10===0?26:(m%5===0?17:10);
+    svg.appendChild(el('line',{x1:30,y1:yy,x2:30+len,y2:yy,stroke:'#191919','stroke-width':m%10===0?1.6:0.8}));
+    if(m%10===0) svg.appendChild(el('text',{x:86,y:yy+4,'font-size':11,fill:'#191919','text-anchor':'end','font-weight':'bold'},String(cm)));
+  }
+  // the mark being read: a water surface or the tube top, drawn against the tape
+  if(S.look==='apex'){
+    svg.appendChild(el('path',{d:`M92,${mid+30} Q92,${mid} 120,${mid} Q148,${mid} 148,${mid+30}`,fill:'none',stroke:'#4b556b','stroke-width':S.tube?S.tube.od*0.9+3:6}));
+    svg.appendChild(el('path',{d:`M92,${mid+30} Q92,${mid} 120,${mid} Q148,${mid} 148,${mid+30}`,fill:'none',stroke:S.primed?'var(--waterdeep)':'#f3f3f3','stroke-width':S.tube?S.tube.od*0.9+1:4}));
+  } else {
+    svg.appendChild(el('rect',{x:92,y:mid,width:58,height:150,fill:'var(--water)',opacity:0.8}));
+    svg.appendChild(el('path',{d:`M92,${mid} Q96,${mid-4} 100,${mid-1} L142,${mid-1} Q146,${mid-4} 150,${mid}`,fill:'none',stroke:'var(--waterdeep)','stroke-width':1.5}));
+  }
+  svg.appendChild(el('line',{x1:0,y1:mid,x2:92,y2:mid,stroke:'#8C1D40','stroke-width':0.7,'stroke-dasharray':'3 3'}));
+  document.getElementById('lookStatus').textContent='Looking at the '+what+'.';
+}
+function render(){
+  // scale lcd
+  const lcd=document.getElementById('scaleLcd'); const r=scaleReading();
+  if(r===null){lcd.innerHTML='&nbsp;<small>&nbsp;</small>';lcd.classList.add('off');}
+  else {lcd.innerHTML=String(r)+'<small> g</small>';lcd.classList.remove('off');}
+  const t=S.sw.t, mm=Math.floor(t/60), ss=Math.floor(t%60), hh=Math.floor((t*100)%100);
+  document.getElementById('swLcd').textContent=String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0')+'.'+String(hh).padStart(2,'0');
+  const active=document.querySelector('section.pane.on').id;
+  if(active==='pane-partbc'){renderSceneB();renderTape();}
+  if(active==='pane-parta'){renderSceneA();}
+}
+function flashStatus(id,msg){const e=document.getElementById(id);e.textContent=msg;e.classList.remove('flash');void e.offsetWidth;e.classList.add('flash');}
+
+/* ===================== UI wiring ===================== */
+function initRandoms(){
+  const r=mulberry32(seedHash);
+  S.stoolH=27+r()*8; S.platformH=3.2+r()*0.8; S.boardMass=380+Math.round(r()*120); S.bowlMass=240+Math.round(r()*160);
+  S.bookRng=mulberry32((seedHash^0x9e3779b9)>>>0);
+  S.scaleZero=0; S.scaleDisp=trueLoad(); S.scaleLast=S.scaleDisp;
+}
+document.getElementById('startBtn').addEventListener('click',()=>{
+  const nm=document.getElementById('nm').value.trim(), dt=document.getElementById('dt').value;
+  if(!nm||!dt){flashStatus('tubeStatus','');alert('Enter your name and the date to open the bench.');return;}
+  seedHash=fnv(nm.toLowerCase()+'|'+dt);
+  seedCode=(seedHash.toString(36).toUpperCase()+'000000').slice(0,6);
+  trialCount=0;
+  initRandoms();
+  document.getElementById('gate').hidden=true;
+  document.getElementById('bench').hidden=false;
+  const chip=document.getElementById('seedchip'); chip.hidden=false; chip.textContent=seedString();
+  buildPackages();
+  requestAnimationFrame(loop);
+});
+document.querySelectorAll('nav.tabs button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('nav.tabs button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+  document.querySelectorAll('section.pane').forEach(p=>p.classList.remove('on'));
+  document.getElementById('pane-'+b.dataset.pane).classList.add('on');
+}));
+function buildPackages(){
+  const box=document.getElementById('pkgs'); box.innerHTML='';
+  TUBES.forEach(t=>{
+    const d=document.createElement('div'); d.className='pkg'; d.dataset.key=t.key;
+    d.innerHTML=`<svg width="64" height="64" viewBox="0 0 64 64"><rect x="4" y="4" width="56" height="56" rx="6" fill="${t.color}" stroke="#D0D0D0"/><circle cx="32" cy="32" r="18" fill="none" stroke="#4b556b" stroke-width="${t.od*0.6+1}"/><circle cx="32" cy="32" r="18" fill="none" stroke="#f3f3f3" stroke-width="${t.od*0.6-1}"/></svg><div class="lab"><b>${t.name}</b>${t.label}</div>`;
+    d.addEventListener('click',()=>{selectTube(t);});
+    box.appendChild(d);
+  });
+}
+function selectTube(t){
+  S.tube=t; S.primed=false; S.placed=false; S.clamped=true; S.a.placed=false; S.a.crest=false;
+  document.querySelectorAll('.pkg').forEach(p=>p.classList.toggle('on',p.dataset.key===t.key));
+  flashStatus('tubeStatus','On the bench: '+t.name+', '+t.label.split('·')[0].trim()+'.');
+}
+// hold buttons
+document.querySelectorAll('button.hold').forEach(b=>{
+  const start=e=>{e.preventDefault();if(b.disabled)return;held=b.dataset.hold;b.classList.add('active');b.setPointerCapture&&b.setPointerCapture(e.pointerId);};
+  const stop=()=>{if(held===b.dataset.hold)held=null;b.classList.remove('active');};
+  b.addEventListener('pointerdown',start); b.addEventListener('pointerup',stop); b.addEventListener('pointercancel',stop); b.addEventListener('pointerleave',stop);
+  b.addEventListener('contextmenu',e=>e.preventDefault());
+});
+// Part A
+document.getElementById('aEmpty').addEventListener('click',()=>{S.a.srcV=0;S.a.recV=0;S.a.placed=false;S.a.crest=false;S.a.flowing=false;});
+document.getElementById('aPlace').addEventListener('click',()=>{
+  if(!S.tube){flashStatus('aStatus','Pick your tubing on the Tubing tab first.');return;}
+  if(S.a.srcV/BOWL_AREA<0.8||S.a.recV/BOWL_AREA<0.8){flashStatus('aStatus','One of the tube ends is not under water.');return;}
+  S.a.placed=true;S.a.t=0;S.a.legS=0;S.a.legR=0;S.a.crest=false;S.a.flowing=false;bumpTrial();
+});
+document.getElementById('aRemove').addEventListener('click',()=>{S.a.placed=false;S.a.crest=false;S.a.flowing=false;});
+// Parts B and C
+document.getElementById('emptySrc').addEventListener('click',()=>{S.srcV=0;});
+document.getElementById('emptyRec').addEventListener('click',()=>{S.recV=0;});
+document.getElementById('addBook').addEventListener('click',()=>{if(S.books.length>=14)return;S.books.push(1.6+S.bookRng()*3.8);});
+document.getElementById('rmBook').addEventListener('click',()=>{S.books.pop();});
+document.getElementById('stoolBtn').addEventListener('click',e=>{S.stool=!S.stool;e.target.textContent=S.stool?'Take the stool away':'Put the stool under the stack';});
+document.getElementById('primeBtn').addEventListener('click',()=>{
+  if(!S.tube){flashStatus('bStatus','Pick your tubing first.');return;}
+  S.primed=true;S.placed=false;S.clamped=true;flashStatus('bStatus','Tube filled under water and lifted out with both ends pinched.');
+});
+document.getElementById('placeBtn').addEventListener('click',()=>{
+  if(!S.tube){flashStatus('bStatus','Pick your tubing first.');return;}
+  if(srcDepth()<0.8||recDepth()<0.8){flashStatus('bStatus','One of the tube ends would not be under water.');return;}
+  S.placed=true;S.clamped=true;S.trial=null;
+});
+document.getElementById('liftBtn').addEventListener('click',()=>{if(!S.clamped){S.primed=false;flashStatus('bStatus','The tube was lifted out while open. The water ran out of it.');}S.placed=false;S.clamped=true;});
+document.getElementById('releaseBtn').addEventListener('click',()=>{
+  if(!S.placed){flashStatus('bStatus','The ends are not in the bowls.');return;}
+  if(!S.clamped) return;
+  S.clamped=false;S.trial=drawTrialParams();S.flowT=0;bumpTrial();
+});
+document.getElementById('clampBtn').addEventListener('click',()=>{S.clamped=true;});
+document.getElementById('hook').addEventListener('input',e=>{S.hook=parseFloat(e.target.value);});
+// scale
+document.getElementById('scaleTap').addEventListener('click',()=>{if(!S.scaleOn){S.scaleOn=true;S.scaleZero=trueLoad();S.scaleDisp=0;S.creep=0;}S.scaleIdleT=0;});
+document.getElementById('scaleTare').addEventListener('click',()=>{if(!S.scaleOn)return;S.scaleZero=trueLoad()+S.creep;S.scaleDisp=0;S.scaleIdleT=0;});
+// stopwatch
+document.getElementById('swStart').addEventListener('click',()=>{if(S.sw.run)return;S.sw.run=true;S.sw.base=S.sw.t;S.sw.t0=performance.now();});
+document.getElementById('swStop').addEventListener('click',()=>{S.sw.run=false;});
+document.getElementById('swReset').addEventListener('click',()=>{S.sw.run=false;S.sw.t=0;S.sw.base=0;});
+// tape
+document.querySelectorAll('button[data-look]').forEach(b=>b.addEventListener('click',()=>{S.look=b.dataset.look;}));
+document.getElementById('eye').addEventListener('input',e=>{S.eye=parseFloat(e.target.value);});
+// default date
+(function(){const d=new Date();document.getElementById('dt').value=d.toISOString().slice(0,10);})();
+})();
+</script>
+</body>
+</html>
