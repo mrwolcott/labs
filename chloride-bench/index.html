@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+=<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -77,8 +77,8 @@
   </div>
 
   <div class="card">
-    <h2>Close-up of the cups</h2>
-    <svg class="scene" id="closeup" viewBox="0 0 240 150"></svg>
+    <h2>Close-up</h2>
+    <svg class="scene" id="closeup" viewBox="0 0 380 160"></svg>
   </div>
 
   <div class="card">
@@ -199,7 +199,7 @@ function step(dt,now){
   }
   // crushing
   if(d&&d.type==='glass'&&d.moved&&overZone('dish',d.px,d.py)){
-    for(const k in S.dish.c){const o=S.dish.c[k];o.grind+=(1-o.grind)*0.35*S.crushI*dt;}
+    for(const k in S.dish.c){const o=S.dish.c[k];o.grind+=(1-o.grind)*0.5*S.crushI*dt;}
   }
   const stirring=(d&&d.type==='spoon'&&overZone('cupInside',d.px,d.py))?S.stirI:0;
   stepCup(S.cup,S.Ta,stirring,dt);
@@ -253,7 +253,14 @@ function drawJug(svg,x,y,tilt){
   if(tilt) g.appendChild(el('path',{d:'M-8,-30 q-6,10 -4,26',fill:'none',stroke:'var(--waterdeep)','stroke-width':2,'stroke-linecap':'round'}));
   svg.appendChild(g);
 }
-function grainR(k,grind){return MAT[k].prill?2.4-1.3*grind:1.1;}
+function grainR(k,grind){return MAT[k].prill?2.4:1.1;}
+// one grain: a round bead, or for crushed prills a few angular shards
+function drawGrain(par,k,x,y,r,crushed,rr,s){
+  if(!crushed){par.appendChild(el('circle',{cx:x,cy:y,r:r,fill:grainFill(k),stroke:'#9aa3b8','stroke-width':0.4*s}));return;}
+  for(let j=0;j<3;j++){const sx=x+(rr()-0.5)*r*2.2, sy=y+(rr()-0.5)*r*1.2, sr=r*(0.35+0.25*rr()); let pts=[];
+    for(let q=0;q<4;q++){const a=q*Math.PI/2+rr()*1.2; const d=sr*(0.6+0.6*rr()); pts.push((sx+Math.cos(a)*d).toFixed(2)+','+(sy+Math.sin(a)*d).toFixed(2));}
+    par.appendChild(el('polygon',{points:pts.join(' '),fill:grainFill(k),stroke:'#9aa3b8','stroke-width':0.35*s}));}
+}
 function grainFill(k){return k==='cacl2'?'#f4f4ef':(k==='kcl'?'#fbfbfb':'#ffffff');}
 // cup body and contents. k = scale factor
 function drawCup(svg,cx,base,k,now,showProbe){
@@ -282,7 +289,8 @@ function drawCup(svg,cx,base,k,now,showProbe){
       const fx=rr()-0.5, fy=rr();
       let x=cx+fx*(bw-6*k), y=base-3*k-fy*5*k;
       if(stirring&&S.cup.water>0){const a=now/250+i;x=cx+(fx*(bw-8*k))*Math.cos(a*0.3);y=base-3*k-fy*Math.min(30*k,(base-lvl)*0.7)*(0.5+0.5*Math.sin(a));}
-      svg.appendChild(el('circle',{cx:x,cy:y,r:r,fill:grainFill(kk),stroke:'#9aa3b8','stroke-width':0.4*k}));
+      const crushed=MAT[kk].prill&&rr()<o.grind;
+      drawGrain(svg,kk,x,y,r,crushed,rr,k);
       gi++;
     }
     for(let j=0;j<nClump;j+=6){
@@ -318,8 +326,15 @@ function drawDish(svg,cx,base){
   let off=-10;
   for(const k in S.dish.c){const o=S.dish.c[k]; if(o.g<0.01) continue;
     const w=Math.min(18,4+Math.sqrt(o.g)*5), hh=Math.min(8,1.5+Math.sqrt(o.g)*2);
-    svg.appendChild(el('path',{d:`M${cx+off-w/2},${base-2} Q${cx+off},${base-2-hh*2} ${cx+off+w/2},${base-2} Z`,fill:grainFill(k),stroke:'#9aa3b8','stroke-width':0.6}));
-    if(MAT[k].prill){const rr=mulberry32(fnv(k+'d')),n=Math.min(14,Math.round(o.g*3)),r=grainR(k,o.grind);for(let i=0;i<n;i++)svg.appendChild(el('circle',{cx:cx+off+(rr()-0.5)*w*0.8,cy:base-3-rr()*hh,r:r*0.8,fill:'#fff',stroke:'#9aa3b8','stroke-width':0.4}));}
+    if(MAT[k].prill){
+      // crushed material collects as powder; whole prills sit on top as round beads
+      const pw=w*(0.25+0.75*o.grind), ph=Math.max(0.6,hh*0.9*o.grind);
+      if(o.grind>0.03) svg.appendChild(el('path',{d:`M${cx+off-pw/2},${base-2} Q${cx+off},${base-2-ph*2} ${cx+off+pw/2},${base-2} Z`,fill:'#e9e9e0',stroke:'#9aa3b8','stroke-width':0.5}));
+      const pos=mulberry32(fnv(k+'d')), cr=mulberry32(fnv(k+'c')), sh=mulberry32(fnv(k+'s')), n=Math.min(22,Math.max(4,Math.round(o.g*4)));
+      for(let i=0;i<n;i++){const x=cx+off+(pos()-0.5)*w, y=base-3-pos()*hh*0.8, crushed=cr()<o.grind; if(crushed){ if(i%3===0) drawGrain(svg,k,x,y,0.9,true,sh,0.8);} else drawGrain(svg,k,x,y,1.45,false,sh,1);}
+    } else {
+      svg.appendChild(el('path',{d:`M${cx+off-w/2},${base-2} Q${cx+off},${base-2-hh*2} ${cx+off+w/2},${base-2} Z`,fill:grainFill(k),stroke:'#9aa3b8','stroke-width':0.6}));
+    }
     off+=10;
   }
 }
@@ -383,11 +398,17 @@ function renderScene(now){
 }
 function renderCloseup(now){
   const svg=document.getElementById('closeup'); while(svg.firstChild)svg.removeChild(svg.firstChild);
-  svg.appendChild(el('line',{x1:0,y1:146,x2:240,y2:146,stroke:'#D0D0D0','stroke-width':1}));
-  drawCup(svg,120,146,1.85,now,false);
+  svg.appendChild(el('line',{x1:0,y1:146,x2:380,y2:146,stroke:'#D0D0D0','stroke-width':1}));
+  drawCup(svg,110,146,1.85,now,false);
   if(S.probe.at==='cup'&&!(S.drag&&S.drag.type==='probe')){
-    svg.appendChild(el('line',{x1:142,y1:0,x2:142,y2:146-7,stroke:'#9aa3b8','stroke-width':3.5,'stroke-linecap':'round'}));
+    svg.appendChild(el('line',{x1:132,y1:0,x2:132,y2:146-7,stroke:'#9aa3b8','stroke-width':3.5,'stroke-linecap':'round'}));
   }
+  if(!(S.drag&&S.drag.type==='dish')){
+    const g=el('g',{transform:'translate(295,146) scale(2.8) translate(-295,-146)'}); svg.appendChild(g); drawDish(g,295,146);
+    if(S.drag&&S.drag.type==='glass'&&overZone('dish',S.drag.px,S.drag.py)){const gg=el('g',{transform:'translate(295,'+(146-30)+') scale(1.6)'});svg.appendChild(gg);drawGlass(gg,0,8);}
+  }
+  svg.appendChild(el('text',{x:110,y:157,'font-size':8,fill:'#747474','text-anchor':'middle'},'cups'));
+  svg.appendChild(el('text',{x:295,y:157,'font-size':8,fill:'#747474','text-anchor':'middle'},'weighing dish'));
 }
 function swText(){const t=S.sw.t, mm=Math.floor(t/60), ss=Math.floor(t%60), hh=Math.floor((t*10)%10);return String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0')+'.'+hh;}
 
