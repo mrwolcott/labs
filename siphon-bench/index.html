@@ -51,6 +51,18 @@
   .legend{font-size:13px; color:var(--gray); margin-top:8px;}
   .next{font-size:13px; color:var(--navy); background:var(--g7); border-left:4px solid var(--teal); padding:8px 10px; margin-top:10px; border-radius:0 8px 8px 0;}
   body.dragging{user-select:none; -webkit-user-select:none;}
+  /* Wider screens: same page, roomier layout. Phones keep the single column above. */
+  @media (min-width: 900px){
+    .wrap{max-width:1180px; padding:16px 20px 60px 20px;}
+    header.bench p{max-width:860px;}
+    #pane-tube .card, #pane-parta .card, #pane-partd .card{max-width:860px;}
+    #pkgs{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px;}
+    #pkgs .pkg{margin-bottom:0;}
+    #pane-partbc.on{display:grid; grid-template-columns:minmax(0,2fr) minmax(300px,1fr); gap:12px; align-items:start;}
+    #pane-partbc > *{grid-column:2; margin:0;}
+    #pane-partbc > .card:first-child{grid-column:1; grid-row:1 / span 6;}
+    #pane-partbc .readwin.on{display:block;}
+  }
   .next button{margin-top:6px; font-size:14px; padding:8px 12px;}
 </style>
 </head>
@@ -111,7 +123,7 @@
     <p class="legend">Drag the jug over a bowl and hold to pour. Drag the receiver bowl over the source and hold to pour it back; drag either bowl to the sink to empty it. Drag books and the stool from the shelf under the source bowl, or drag them back off. Drag the tube to the sink to fill it, then onto the bowls to put the ends in. Drag the top of the tube to hang it higher or lower. To take the tube out, drag either leg away from the bowls, or drag it straight to the sink to fill it again. Tap the clamp to open or close it. Tap the scale's zero pad to zero it, or its platform to wake it. Tap a water surface or the top of the tube to look at it against the tape.</p>
     <div class="status" id="bStatus"></div>
     <button class="ghost" id="resetB">Start the bench over</button>
-    <div class="next">Part B and Part C both run on this bench. The tube starts out lying beside the bowls; fill it in the sink before it goes in. For Part C, leave the bowls where they are and drag the top of the tube to hang it. Your lab document has the steps for each trial; the scale, stopwatch, and tape are below and on the scene. When Series 2 is done, open the Part D tab.</div>
+    <div class="next">Part B and Part C both run on this bench. The tube starts out lying beside the bowls; fill it in the sink before it goes in. For Part C, leave the bowls where they are and drag the top of the tube to hang it. Your lab document has the steps for each trial; the scale and stopwatch are on the scene, with the stopwatch controls and the tape window next to it. When Series 2 is done, open the Part D tab.</div>
   </div>
 
   <div class="card">
