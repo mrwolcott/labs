@@ -1,4 +1,4 @@
-=<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -40,6 +40,17 @@
   .legend{font-size:13px; color:var(--gray); margin-top:8px;}
   .next{font-size:13px; color:var(--navy); background:var(--g7); border-left:4px solid var(--teal); padding:8px 10px; margin-top:10px; border-radius:0 8px 8px 0;}
   body.dragging{user-select:none; -webkit-user-select:none;}
+  /* Wide screens: scene on the left, instruments beside it so readings stay in view */
+  @media (min-width: 900px){
+    .wrap{max-width:1240px; padding:16px 20px 60px 20px;}
+    #bench:not([hidden]){display:grid; grid-template-columns:minmax(0,1.75fr) minmax(300px,1fr); gap:0 16px; grid-template-rows:auto auto 1fr; align-items:start;}
+    .a-scene{grid-column:1; grid-row:1 / span 3;}
+    .a-read{grid-column:2; grid-row:1;}
+    .a-close{grid-column:2; grid-row:2;}
+    .a-sw{grid-column:2; grid-row:3;}
+    #gate{max-width:560px;}
+    .lcd{font-size:30px;}
+  }
 </style>
 </head>
 <body>
@@ -63,12 +74,12 @@
 </div>
 
 <div id="bench" hidden>
-  <div class="readouts">
+  <div class="readouts a-read">
     <div class="ro"><div class="nm">Kitchen scale</div><div class="lcd" id="scaleLcd"></div></div>
     <div class="ro"><div class="nm">Thermometer</div><div class="lcd" id="thermLcd"></div></div>
   </div>
 
-  <div class="card">
+  <div class="card a-scene">
     <h2>The bench</h2>
     <svg class="scene" id="scene" viewBox="0 0 400 228"></svg>
     <div class="status" id="status"></div>
@@ -76,12 +87,12 @@
     <p class="legend">Dip the spoon into a container to take a scoop. Hold a loaded spoon over the dish to tap it out a little at a time; let go over the dish to empty it there, or over a container to put it back. Dip an empty spoon into the dish to take a little back out. Rub the glass back and forth over the dish to crush what is in it. Let go of the dish over the cups to add what is in it. Move the spoon around inside the cups to stir. Drag the thermometer into the cups, and back to its holder to take it out. Tap the side of the cups to feel them.</p>
   </div>
 
-  <div class="card">
+  <div class="card a-close">
     <h2>Close-up</h2>
     <svg class="scene" id="closeup" viewBox="0 0 380 160"></svg>
   </div>
 
-  <div class="card">
+  <div class="card a-sw">
     <h2>Stopwatch</h2>
     <div class="row">
       <div class="lcd" id="swLcd" style="min-width:150px">00:00.0</div>
