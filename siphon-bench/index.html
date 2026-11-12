@@ -99,6 +99,7 @@
     <svg class="scene" id="sceneA" viewBox="0 0 360 230"></svg>
     <p class="legend">Drag the jug over a bowl and hold to pour. Drag a bowl to the sink to empty it. Drag the dry tube onto the bowls to put one end in each and let go; drag it back off to take it out.</p>
     <div class="status" id="aStatus"></div>
+    <button class="ghost" id="resetA">Start Part A over</button>
     <div class="next">There is no sink step for filling the tube in Part A; the tube goes in dry. When you have written down and screenshotted what you saw, open the Parts B and C tab. The bowls there are a separate pair on the bench, so what you poured here does not carry over.<br><button class="ghost" data-goto="partbc">Go to Parts B and C</button></div>
   </div>
 </section>
@@ -107,8 +108,9 @@
   <div class="card">
     <h2>The bench</h2>
     <svg class="scene" id="sceneB" viewBox="0 0 360 330"></svg>
-    <p class="legend">Drag the jug over a bowl and hold to pour. Drag the receiver bowl over the source and hold to pour it back; drag either bowl to the sink to empty it. Drag books and the stool from the shelf under the source bowl, or drag them back off. Drag the tube to the sink to fill it, then onto the bowls to put the ends in. Drag the top of the tube to hang it higher or lower; drag it to the sink to lift it out. Tap the clamp to open or close it. Tap the scale's zero pad to zero it, or its platform to wake it. Tap a water surface or the top of the tube to look at it against the tape.</p>
+    <p class="legend">Drag the jug over a bowl and hold to pour. Drag the receiver bowl over the source and hold to pour it back; drag either bowl to the sink to empty it. Drag books and the stool from the shelf under the source bowl, or drag them back off. Drag the tube to the sink to fill it, then onto the bowls to put the ends in. Drag the top of the tube to hang it higher or lower. To take the tube out, drag either leg away from the bowls, or drag it straight to the sink to fill it again. Tap the clamp to open or close it. Tap the scale's zero pad to zero it, or its platform to wake it. Tap a water surface or the top of the tube to look at it against the tape.</p>
     <div class="status" id="bStatus"></div>
+    <button class="ghost" id="resetB">Start the bench over</button>
     <div class="next">Part B and Part C both run on this bench. The tube starts out lying beside the bowls; fill it in the sink before it goes in. For Part C, leave the bowls where they are and drag the top of the tube to hang it. Your lab document has the steps for each trial; the scale, stopwatch, and tape are below and on the scene. When Series 2 is done, open the Part D tab.</div>
   </div>
 
@@ -204,7 +206,7 @@ const S={
   drag:null, pouring:null, //pouring: 'src' | 'rec' | 'back'
   a:{srcV:0, recV:0, placed:false, t:0, legS:0, legR:0, crest:false, trial:null, drag:null, pouring:null},
 };
-window.__S=S;
+
 const srcDepth=()=>S.srcV/BOWL_AREA, recDepth=()=>S.recV/BOWL_AREA;
 const stackH=()=>(S.stool?S.stoolH:0)+S.books.reduce((a,b)=>a+b,0);
 const srcBottom=()=>stackH()+0.3, srcSurface=()=>srcBottom()+srcDepth(), srcRim=()=>srcBottom()+BOWL_DEPTH;
@@ -324,8 +326,8 @@ let hitsB=[], geomB={};
 function renderSceneB(){
   const svg=document.getElementById('sceneB'); while(svg.firstChild)svg.removeChild(svg.firstChild);
   hitsB=[];
-  const topCm=Math.max(42, apexH()+10, srcRim()+6, S.drag&&S.drag.type==='apex'?S.drag.y+10:0);
-  const PX=3.3, FLOOR=topCm*PX+16; const y=cm=>FLOOR-cm*PX; geomB={PX,FLOOR,y};
+  const topCm=(S.drag&&S.drag.type==='apex'&&geomB.topCm)?geomB.topCm:Math.max(42, apexH()+10, srcRim()+6);
+  const PX=3.3, FLOOR=topCm*PX+16; const y=cm=>FLOOR-cm*PX; geomB={PX,FLOOR,y,topCm};
   svg.setAttribute('viewBox','0 0 400 '+(FLOOR+34));
   svg.appendChild(el('rect',{x:0,y:0,width:400,height:FLOOR+34,fill:'transparent'}));
   svg.appendChild(el('line',{x1:0,y1:FLOOR,x2:400,y2:FLOOR,stroke:'#747474','stroke-width':2}));
@@ -383,12 +385,14 @@ function renderSceneB(){
       const srx=y(srcRim()-1.5), rrx=y(recBottom()+BOWL_DEPTH+1.5);
       const d=`M${sx},${sy} L${sx},${srx} C${sx},${ay} ${ax+25},${ay} ${ax},${ay} C${ax-30},${ay} ${rx},${Math.min(rrx,ay+30)} ${rx},${rrx} L${rx},${ry}`;
       drawTube(svg,d,S.tube,S.primed,S.flowing,S.flowDir);
+      geomB.tubeD=d;
       // clamp sits on the receiver leg just below the apex
       const cy=ay+34, cx=ax-40;
       svg.appendChild(el('rect',{x:cx-7,y:cy-6,width:14,height:12,fill:S.clamped?'#191919':'#9aa3b8',rx:2,stroke:'#191919'}));
       svg.appendChild(el('text',{x:cx+11,y:cy+3,'font-size':7,fill:'#747474','text-anchor':'start'},S.clamped?'clamped':'open'));
       hit(hitsB,'clamp',cx-14,cy-14,28,28); hit(hitsB,'apex',ax-22,ay-22,44,36);
     } else if(!(S.drag&&S.drag.type==='tube')){
+      geomB.tubeD=null;
       const d=`M${190},${y(1)} C${190},${y(14)} ${240},${y(14)} ${240},${y(1)}`;
       drawTube(svg,d,S.tube,S.primed,false,0); hit(hitsB,'tube',185,y(12),60,40);
       svg.appendChild(el('text',{x:215,y:FLOOR+11,'font-size':8,fill:'#747474','text-anchor':'middle'},'tube'));
@@ -413,16 +417,28 @@ function renderSceneB(){
   }
 }
 function pointFromEvent(svg,e){const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const p=pt.matrixTransform(svg.getScreenCTM().inverse());return {x:p.x,y:p.y};}
-function findHit(list,x,y){let best=null;for(const h of list){if(x>=h.x&&x<=h.x+h.w&&y>=h.y&&y<=h.y+h.h){if(!best||(!h.low&&best.low))best=h;}}return best;}
+let tubeProbe=null;
+function nearPlacedTube(x,y){
+  if(!S.placed||!geomB.tubeD) return false;
+  if(!tubeProbe){tubeProbe=document.createElementNS(NS,'path');}
+  tubeProbe.setAttribute('d',geomB.tubeD);
+  const L=tubeProbe.getTotalLength();
+  for(let t=0;t<=L;t+=4){const q=tubeProbe.getPointAtLength(t);if(Math.hypot(q.x-x,q.y-y)<11)return true;}
+  return false;
+}
+function hitRank(h){return h.pri?2:(h.low?0:1);}
+function findHit(list,x,y){let best=null;for(const h of list){if(x>=h.x&&x<=h.x+h.w&&y>=h.y&&y<=h.y+h.h){if(!best||hitRank(h)>hitRank(best))best=h;}}return best;}
 function wireSceneB(){
   const svg=document.getElementById('sceneB');
   svg.addEventListener('pointerdown',e=>{
-    e.preventDefault(); const p=pointFromEvent(svg,e); const h=findHit(hitsB,p.x,p.y); if(!h) return;
+    e.preventDefault(); const p=pointFromEvent(svg,e); let h=findHit(hitsB,p.x,p.y);
+    if((!h||(h.id!=='clamp'&&h.id!=='apex'&&h.id!=='zero'))&&nearPlacedTube(p.x,p.y)) h={id:'tubeLeg'};
+    if(!h) return;
     svg.setPointerCapture(e.pointerId); document.body.classList.add('dragging');
     const d={id:h.id,px:p.x,py:p.y,sx:p.x,sy:p.y,moved:false};
     if(h.id==='jug') d.type='jug'; else if(h.id==='shelfBook') d.type='book'; else if(h.id==='topBook'){d.type='book';d.fromStack=true;}
     else if(h.id==='shelfStool') d.type='stool'; else if(h.id==='stackStool'){d.type='stool';d.fromStack=true;}
-    else if(h.id==='tube') d.type='tube'; else if(h.id==='apex'){d.type='apex';d.y=apexH();}
+    else if(h.id==='tube') d.type='tube'; else if(h.id==='tubeLeg'){d.type='tube';d.fromPlaced=true;d.wasPrimed=S.primed;d.wasClamped=S.clamped;S.placed=false;S.clamped=true;S.hook=0;} else if(h.id==='apex'){d.type='apex';d.y=apexH();}
     else if(h.id==='recBowl'||h.id==='recWater') d.type='recBowl'; else if(h.id==='srcBowl'||h.id==='srcWater') d.type='srcBowl';
     else d.type='tap';
     S.drag=d;
@@ -431,7 +447,8 @@ function wireSceneB(){
     const d=S.drag; if(!d) return; const p=pointFromEvent(svg,e);
     if(Math.hypot(p.x-d.sx,p.y-d.sy)>4) d.moved=true;
     d.px=p.x; d.py=p.y;
-    if(d.type==='apex' && d.moved){S.hook=Math.max(0,(geomB.FLOOR-p.y)/geomB.PX);}
+    if(d.type==='apex'){const sk=hitsB.find(h=>h.id==='sink');d.overSink=!!(sk&&p.x<sk.x+sk.w+30&&p.y<sk.y+sk.h+30);}
+    if(d.type==='apex' && d.moved && !d.overSink){S.hook=Math.max(0,Math.min(geomB.topCm-4,(geomB.FLOOR-p.y)/geomB.PX));}
     // pouring while held over a bowl
     S.pouring=null;
     if(d.type==='jug'&&d.moved){const o=findHit(hitsB.filter(h=>h.id==='srcPour'||h.id==='recPour'),p.x,p.y);if(o)S.pouring=o.id==='srcPour'?'src':'rec';}
@@ -441,6 +458,7 @@ function wireSceneB(){
     const d=S.drag; if(!d) return; S.drag=null; S.pouring=null; document.body.classList.remove('dragging');
     const p=pointFromEvent(svg,e); const over=findHit(hitsB,p.x,p.y);
     const overId=over?over.id:null;
+    if(!d.moved && d.fromPlaced){S.placed=true;S.primed=d.wasPrimed;S.clamped=d.wasClamped;return;}
     if(!d.moved){ // tap
       if(d.id==='clamp'){if(S.clamped){if(!S.placed)return;S.clamped=false;S.trial=drawTrialParams();S.flowT=0;bumpTrial();if(S.swLinked)swStart();}else{S.clamped=true;if(S.swLinked)swStop();}}
       else if(d.id==='zero'){if(S.scaleOn){S.scaleZero=trueLoad()+S.creep;S.scaleDisp=0;S.scaleIdleT=0;}}
@@ -456,8 +474,10 @@ function wireSceneB(){
       const onStack=p.x>240&&p.x<340;
       if(d.fromStack){ if(!onStack) S.stool=false; } else if(onStack){ S.stool=true; }
     } else if(d.type==='tube'){
+      if(d.fromPlaced&&overId!=='sink'&&Math.hypot(p.x-d.sx,p.y-d.sy)<40){S.placed=true;S.primed=d.wasPrimed;S.clamped=d.wasClamped;return;}
       if(overId==='sink'){S.primed=true;S.clamped=true;flashStatus('bStatus','Tube filled under water and lifted out with both ends pinched.');}
-      else if(p.x>130&&p.x<330&&p.y<geomB.y(0)){
+      else if(d.fromPlaced&&d.wasPrimed){S.primed=false;flashStatus('bStatus','The tube was lifted out of the bowls. The water ran out of it.');}
+      if(overId!=='sink'&&p.x>130&&p.x<330&&p.y<geomB.y(0)&&!d.fromPlaced){
         if(srcDepth()<0.8||recDepth()<0.8){flashStatus('bStatus','One of the tube ends would not be under water.');}
         else {S.placed=true;S.clamped=true;S.trial=null;}
       }
@@ -635,6 +655,15 @@ function selectTube(t){
   document.querySelectorAll('.pkg').forEach(p=>p.classList.toggle('on',p.dataset.key===t.key));
   flashStatus('tubeStatus','On the bench: '+t.name+', '+t.label.split('·')[0].trim()+'. Next: the Part A tab.');
 }
+document.getElementById('resetA').addEventListener('click',()=>{
+  const a=S.a; a.srcV=0;a.recV=0;a.placed=false;a.crest=false;a.t=0;a.legS=0;a.legR=0;a.drag=null;a.pouring=null;
+  flashStatus('aStatus','Both bowls emptied and the dry tube is back on the floor.');
+});
+document.getElementById('resetB').addEventListener('click',()=>{
+  S.srcV=0;S.recV=0;S.boardPool=0;S.floorPool=0;S.books=[];S.stool=false;
+  S.primed=false;S.placed=false;S.clamped=true;S.hook=0;S.trial=null;S.flowT=0;S.drag=null;S.pouring=null;S.look='none';
+  flashStatus('bStatus','Bowls emptied, books and stool back on the shelf, and the empty tube is beside the bowls. The scale and stopwatch keep their own zero and reset.');
+});
 document.getElementById('swStart').addEventListener('click',swStart);
 document.getElementById('swStop').addEventListener('click',swStop);
 document.getElementById('swLink').addEventListener('change',e=>{S.swLinked=e.target.checked;});
