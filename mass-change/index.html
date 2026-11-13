@@ -338,16 +338,20 @@ function render(){
   // dragged last
   if(D){
     if(D.type==='tray')drawTray(svg,D.px,D.py,D.t);
-    else if(D.type==='spoon')drawSpoon(svg,D.px,D.py);
+    else if(D.type==='spoon')drawSpoon(svg,D.px,D.py,D.moved);
     else if(D.type==='foil')svg.appendChild(el('rect',{x:D.px-20,y:D.py-6,width:40,height:12,fill:'#e4e7ec',stroke:'#8a909c'}));
     else if(D.type==='sheet')drawSheet(svg,D.px-D.sx,D.py-D.sy,false);
     else if(D.type==='bowl')drawBowl(svg,D.px,D.py,true);
   }
 }
-function drawSpoon(svg,x,y){
-  const g=el('g',{transform:`translate(${x},${y})`});
+function drawSpoon(svg,x,y,full){
+  const g=el('g',{transform:`translate(${x},${y})`+(full?' scale(1.35)':'')});
   g.appendChild(el('rect',{x:-1.5,y:-20,width:3,height:28,rx:1.5,fill:'#9aa3b8'}));
   g.appendChild(el('ellipse',{cx:0,cy:13,rx:6,ry:4.5,fill:'#9aa3b8',stroke:'#6d7488'}));
+  if(full){
+    g.appendChild(el('path',{d:'M-7,12.5 Q-6.5,5 -2,2.5 Q0,0.5 2.5,2.5 Q6.5,5 7,12.5 Q0,15 -7,12.5 Z',fill:'#ffffff',stroke:'#8a909c','stroke-width':0.9}));
+    g.appendChild(el('circle',{cx:-2.5,cy:7.5,r:0.8,fill:'#d6d9df'}));g.appendChild(el('circle',{cx:2.2,cy:6,r:0.7,fill:'#d6d9df'}));g.appendChild(el('circle',{cx:0.5,cy:10,r:0.7,fill:'#d6d9df'}));
+  }
   svg.appendChild(g);
 }
 function drawBowl(svg,cx,y,inverted){
