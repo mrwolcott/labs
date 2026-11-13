@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>What Leaves a Collision: Virtual Lab Bench</title>
+<style>
+  :root{--navy:#1B2450; --teal:#1DB793; --white:#FFFFFF; --g1:#191919; --gray:#747474; --g5:#D0D0D0; --g6:#E8E8E8; --g7:#FAFAFA;}
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; background:var(--g6); color:var(--navy); font-family:Arial, Helvetica, sans-serif; font-size:16px; line-height:1.45;}
+  .wrap{max-width:560px; margin:0 auto; padding:12px 12px 90px 12px;}
+  header.bench{background:var(--navy); color:var(--white); border-radius:10px; padding:14px 16px; margin-bottom:12px;}
+  .badge{display:inline-block; background:var(--teal); color:var(--white); font-weight:bold; font-size:11px; letter-spacing:2px; padding:3px 10px; border-radius:12px; margin-bottom:8px;}
+  header.bench h1{margin:0 0 6px 0; font-size:22px; line-height:1.2;}
+  header.bench p{margin:0; font-size:13px; color:#cdd3ea;}
+  #seedchip{position:fixed; top:8px; right:8px; z-index:50; background:var(--navy); color:var(--white); font-size:12px; font-weight:bold; letter-spacing:1px; padding:6px 10px; border-radius:8px; border:2px solid var(--teal); font-family:"Courier New", monospace;}
+  .card{background:var(--white); border:1px solid var(--g5); border-radius:10px; padding:14px; margin-bottom:12px;}
+  .card h2{margin:0 0 8px 0; font-size:16px; color:var(--navy); border-bottom:2px solid var(--teal); padding-bottom:5px;}
+  .muted{color:var(--gray); font-size:13px;}
+  p{margin:6px 0;}
+  button{font-family:Arial, Helvetica, sans-serif; font-size:15px; border:none; border-radius:8px; padding:11px 14px; margin:4px 4px 4px 0; cursor:pointer; background:var(--navy); color:var(--white); touch-action:manipulation; user-select:none; -webkit-user-select:none;}
+  button.teal{background:var(--teal);}
+  button.ghost{background:var(--g7); color:var(--navy); border:1px solid var(--g5);}
+  input[type=text], input[type=date]{width:100%; font-size:16px; padding:10px; border:1px solid var(--g5); border-radius:8px; font-family:Arial, Helvetica, sans-serif; margin-bottom:8px;}
+  input[type=range]{width:100%; margin:8px 0;}
+  label{font-size:14px; display:block; margin-top:6px;}
+  .row{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+  svg.scene{width:100%; height:auto; display:block; background:var(--g7); border:1px solid var(--g5); border-radius:8px; touch-action:none; user-select:none; -webkit-user-select:none;}
+  .status{font-size:13px; color:var(--gray); margin-top:6px; min-height:18px;}
+  .flash{animation:flash 0.5s;}
+  @keyframes flash{0%{background:#d8f5ec;}100%{background:var(--white);}}
+  .gate{margin-top:20px;}
+  .legend{font-size:13px; color:var(--gray); margin-top:8px;}
+  .next{font-size:13px; color:var(--navy); background:var(--g7); border-left:4px solid var(--teal); padding:8px 10px; margin-top:10px; border-radius:0 8px 8px 0;}
+  .readwin{display:none;} .readwin.on{display:block;}
+  body.dragging{user-select:none; -webkit-user-select:none;}
+  @media (min-width: 900px){
+    .wrap{max-width:1180px; padding:16px 20px 60px 20px;}
+    header.bench p{max-width:860px;}
+    #gate{max-width:620px;}
+    #bench:not([hidden]){display:grid; grid-template-columns:minmax(0,2fr) minmax(300px,1fr); gap:12px; align-items:start;}
+    #bench > *{grid-column:2; margin:0;}
+    #bench > #sceneCard{grid-column:1; grid-row:1 / span 6;}
+  }
+</style>
+</head>
+<body>
+<div id="seedchip" hidden>WLC-000000-00</div>
+<div class="wrap">
+
+<header class="bench">
+  <span class="badge">PHYSICS</span>
+  <h1>What Leaves a Collision<br>Virtual Lab Bench</h1>
+  <p>This bench is for students who could not get hold of the materials. If you can build the real setup, do that instead. The real version is the better experience and the one we prefer. Keep your lab document open next to this page and record every reading there, exactly as you would at a real bench. Nothing here is checked, corrected, or scored.</p>
+</header>
+
+<div id="gate" class="card gate">
+  <h2>Start your session</h2>
+  <p class="muted">Your name and today's date set up your bench. The code at the top right of the screen belongs to your session. Include a screenshot that shows it in your lab report where the name and date photo would otherwise go.</p>
+  <label for="nm">Your name</label>
+  <input type="text" id="nm" placeholder="Last, First" autocomplete="off">
+  <label for="dt">Today's date</label>
+  <input type="date" id="dt">
+  <button class="teal" id="startBtn">Open the bench</button>
+  <div class="status" id="gateStatus"></div>
+</div>
+
+<div id="bench" hidden>
+  <div class="card" id="sceneCard">
+    <h2>The table</h2>
+    <svg class="scene" id="scene" viewBox="0 0 400 446"></svg>
+    <p class="legend">Drag a marble or a target onto the scale to weigh it, and back to the shelf. Drag a target onto the table to set it at the tape line, and drag it back there after each trial. Tap a target sitting on the tape line to turn it around. Drag the tape marker along the ramp to set the release point, and tap it to read its height. Drag a marble onto the ramp and let go to release it from the marker. Tap a target after it slides to read its position on the ruler. A marble stuck in the putty comes off when you drag it. Tap the scale's zero pad to zero it.</p>
+    <div class="status" id="status"></div>
+    <button class="ghost" id="resetBtn">Start the bench over</button>
+    <div class="next">Your lab document has the steps and the order of the parts. Each target on the shelf already has a putty pad on one face. After a bounce, the striker rolls back and comes to rest beside the bottom of the ramp, out of the way, so it cannot strike the target a second time.</div>
+  </div>
+
+  <div class="card readwin" id="readwin">
+    <h2 id="readTitle">Reading</h2>
+    <div class="row" style="align-items:flex-start">
+      <svg id="readSvg" viewBox="0 0 160 220" style="width:160px;height:220px;background:var(--g7);border:1px solid var(--g5);border-radius:8px"></svg>
+      <div style="flex:1;min-width:140px">
+        <div class="status" id="readStatus"></div>
+        <label for="eye">Eye position</label>
+        <input type="range" id="eye" min="-3" max="3" value="0" step="0.1" aria-label="Eye position">
+        <div class="muted" id="eyeNote">Centered is straight above the mark.</div>
+        <button class="ghost" id="readClose">Close the close-up</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+/*ENGINE_START*/
+// Collision Transfer Investigation bench engine. Spec v2: ideal conditions, spec restitution estimates.
+const ENGINE = (() => {
+  const C = {
+    G: 9.81,
+    ROLL: 10/7,              // v^2 = (10/7) g h for a solid sphere rolling without slipping, calculated
+    CHANNEL: 0.882,          // 90 degree V channel, calculated
+    E: { soap: 0.35, wood: 0.5, eraser: 0.3 },   // estimated, spec values
+    MU: [0.18, 0.45],        // seeded per student, estimated
+    SCATTER: 0.05,           // lognormal sd on slide distance, estimated
+    OFFCENTER_P: 1/12,       // estimated
+    OFFCENTER_LOSS: [0.55, 0.85], OFFCENTER_DEG: [16, 40],
+    NORMAL_DEG: 4,           // max stray rotation on a good strike
+    PLACE_MM: 0.4            // how far off the tape line a hand-placed target sits
+  };
+  function fnv(str){let h=0x811c9dc5;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,0x01000193)>>>0;}return h>>>0;}
+  function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+  function gauss(r){let u=0,v=0;while(u===0)u=r();while(v===0)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+  const lerp=(a,r)=>a[0]+r*(a[1]-a[0]);
+  function benchParams(seed){const r=mulberry32((seed^0xC011)>>>0);return {mu:lerp(C.MU,r()), cal:1+0.003*gauss(r)};}
+  function arrival(hCm){return C.CHANNEL*Math.sqrt(C.ROLL*C.G*hCm/100);}           // m/s
+  // m: striker g, B: target g (including anything embedded), face: 'putty'|'bare', mat, rng for this trial
+  function collide(m, B, hCm, face, mat, mu, rng){
+    const v=arrival(hCm), e=face==='putty'?0:C.E[mat];
+    const V=m*(1+e)*v/(m+B);                  // target speed just after impact
+    const vs=face==='putty'?V:v*(m-e*B)/(m+B); // striker after impact
+    let d=V*V/(2*mu*C.G)*1000;                // mm, ideal
+    const off=rng()<C.OFFCENTER_P;
+    let deg=(rng()*2-1)*C.NORMAL_DEG;
+    if(off){d*=lerp(C.OFFCENTER_LOSS,rng()); deg=(rng()<0.5?-1:1)*lerp(C.OFFCENTER_DEG,rng());}
+    d*=Math.exp(C.SCATTER*gauss(rng));
+    return {v, V, vs, d, deg, off, stuck:face==='putty'};
+  }
+  return { C, fnv, mulberry32, gauss, benchParams, arrival, collide };
+})();
+
+/*ENGINE_END*/
+
+</script>
+<script>
+(function(){
+'use strict';
+const E=ENGINE, C=E.C;
+let seedHash=0, seedCode='', trial=0, BP=null;
+const S={objs:[], marker:35, drag:null, look:null, eye:0, run:null, zero:0, disp:0, resetArm:0};
+const T={hits:[]};
+
+function seedString(){return 'WLC-'+seedCode+'-'+String(trial).padStart(2,'0');}
+function bump(){trial++;document.getElementById('seedchip').textContent=seedString();}
+function trialRng(){return E.mulberry32((seedHash^Math.imul(trial+1,2654435761))>>>0);}
+
+/* ===================== Geometry (side view, 4.2 units per cm) ===================== */
+const K=4.2, TABLE_Y=404, RAMP_FOOT=168, RAMP_TOP_H=62, RAMP_RUN=36;
+const rampX=hCm=>RAMP_FOOT-RAMP_RUN*K*(hCm/RAMP_TOP_H), rampY=hCm=>TABLE_Y-hCm*K;
+const TAPE_X=RAMP_FOOT+15*K, RULER_MM=300;
+const xOfMm=mm=>TAPE_X+mm/10*K;
+const SHELF_Y=74, SHELF2_Y=168, DR=1.8, SCALE={cx:352,top:62};
+const mr=o=>Math.max(3.2,o.dia/20*K)*DR;
+
+/* ===================== Objects ===================== */
+function initObjects(){
+  const r=E.mulberry32((seedHash^0x51E1F)>>>0); const v=(a,b)=>Math.round((a+r()*(b-a))*10)/10;
+  S.objs=[
+    {id:'m1',kind:'marble',name:'small marble',mass:v(5.0,5.8),dia:16,home:{x:16,y:SHELF_Y},loc:'shelf'},
+    {id:'m2',kind:'marble',name:'shooter marble',mass:v(19.6,21.4),dia:25,home:{x:50,y:SHELF_Y},loc:'shelf'},
+    {id:'t1',kind:'target',name:'hotel soap',mat:'soap',mass:v(21,29),w:55,h:16,color:'#f3e6c8',home:{x:98,y:SHELF_Y},loc:'shelf'},
+    {id:'t2',kind:'target',name:'small wood block',mat:'wood',mass:v(22,30),w:50,h:17,color:'#d8b88a',home:{x:148,y:SHELF_Y},loc:'shelf'},
+    {id:'t3',kind:'target',name:'eraser',mat:'eraser',mass:v(21,28),w:50,h:15,color:'#f2b8b0',home:{x:196,y:SHELF_Y},loc:'shelf'},
+    {id:'t4',kind:'target',name:'large eraser',mat:'eraser',mass:v(42,50),w:70,h:20,color:'#f2b8b0',home:{x:254,y:SHELF_Y},loc:'shelf'},
+    {id:'t5',kind:'target',name:'bath soap',mat:'soap',mass:v(96,114),w:90,h:25,color:'#e9f0f7',home:{x:236,y:SHELF2_Y},loc:'shelf'},
+    {id:'t6',kind:'target',name:'large wood block',mat:'wood',mass:v(88,108),w:80,h:26,color:'#d8b88a',home:{x:334,y:SHELF2_Y},loc:'shelf'}
+  ];
+  S.objs.forEach(o=>{if(o.kind==='target'){o.face='putty';o.pos=0;o.deg=0;o.place=0;o.slid=false;}else{o.x=null;}});
+}
+const obj=id=>S.objs.find(o=>o.id===id);
+const onTable=()=>S.objs.find(o=>o.kind==='target'&&o.loc==='table');
+const onScale=()=>S.objs.find(o=>o.loc==='scale'||(o.loc==='stuck'&&obj(o.in)&&obj(o.in).loc==='scale'));
+function targetMass(t){return t.mass+S.objs.filter(o=>o.loc==='stuck'&&o.in===t.id).reduce((a,o)=>a+o.mass,0);}
+
+/* ===================== Run: roll, collide, slide ===================== */
+function release(m){
+  const h=S.marker+(trialRng()()-0.5)*0.3;  // a hand-placed marble sits within about 1.5 mm of the tape
+  bump(); const rng=trialRng();
+  const t=onTable();
+  const sinA=Math.sin(Math.atan2(RAMP_TOP_H,RAMP_RUN));
+  const a=(5/7)*C.G*sinA*C.CHANNEL*C.CHANNEL;     // along the ramp, m/s^2
+  const L=h/100/sinA, tRamp=Math.sqrt(2*L/a), v=E.arrival(h);
+  m.loc='run';
+  S.run={m,t,h,t0:performance.now(),tRamp,v,hitT:null,res:null,rng,phase:'ramp',sx:0,tx0:t?t.pos:0};
+}
+function stepRun(){
+  const R=S.run; if(!R)return;
+  const tt=(performance.now()-R.t0)/1000, m=R.m;
+  if(R.phase==='ramp'){
+    const f=Math.min(1,(tt/R.tRamp)**2); const hh=R.h*(1-f);
+    m.x=rampX(hh); m.y=rampY(hh)-mr(m);
+    if(f>=1){R.phase='flat';R.tf=tt;}
+    return;
+  }
+  const t=R.t;
+  const faceX=t?xOfMm(t.pos+t.place)-1:999;
+  if(R.phase==='flat'){
+    const x=RAMP_FOOT+(tt-R.tf)*R.v*100*K; m.x=x; m.y=TABLE_Y-mr(m);
+    if(t&&x+mr(m)>=faceX){
+      R.res=E.collide(m.mass,targetMass(t),R.h,t.face,t.mat,BP.mu,R.rng);
+      R.phase='slide';R.tc=tt;R.d0=t.pos;R.deg0=t.deg;R.mx0=faceX-mr(m);
+      if(R.res.stuck){m.loc='stuck';m.in=t.id;}
+    } else if(x>412){m.loc='floor';S.run=null;flash('The marble rolled off the end of the table. Drag it from the floor back to the shelf.');}
+    return;
+  }
+  if(R.phase==='slide'){
+    const res=R.res, dt=tt-R.tc, tStop=res.V/(BP.mu*C.G);
+    const s=dt>=tStop?res.d:res.d*(1-(1-dt/tStop)**2);
+    t.pos=R.d0+s; t.deg=R.deg0+res.deg*Math.min(1,dt/Math.max(tStop,0.01)); t.slid=true;
+    if(!res.stuck){
+      const back=Math.min(dt*Math.abs(res.vs)*100*K*Math.exp(-dt*2), (R.mx0-(RAMP_FOOT+10)));
+      m.x=R.mx0-Math.max(0,back); m.y=TABLE_Y-mr(m);
+    }
+    if(dt>=tStop&&(res.stuck||dt>1.2)){if(!res.stuck){m.loc='beside';m.x=RAMP_FOOT+10+(m.id==='m2'?24:0);}S.run=null;}
+  }
+}
+
+/* ===================== Scale ===================== */
+function trueLoad(){
+  let m=0;
+  for(const o of S.objs){if(o.loc==='scale')m+=o.kind==='target'?targetMass(o):o.mass;}
+  return m*BP.cal;
+}
+function scaleReading(dt){S.disp+=(trueLoad()-S.zero-S.disp)*Math.min(1,dt/0.35);
+  const tick=Math.floor(performance.now()/350), r=E.mulberry32((seedHash^tick)>>>0)();
+  const v=Math.round(S.disp)+((r<0.08)?1:(r<0.16?-1:0)); return (v===0?0:v)+' g';}
+
+/* ===================== Drawing ===================== */
+const NS='http://www.w3.org/2000/svg';
+function el(n,a,txt){const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;return e;}
+function hit(id,x,y,w,h,extra){T.hits.push(Object.assign({id,x,y,w,h},extra||{}));}
+function label(svg,x,y,t,anchor){svg.appendChild(el('text',{x,y,'font-size':7.5,fill:'#747474','text-anchor':anchor||'middle'},t));}
+function drawMarble(svg,x,y,o){const r=mr(o);svg.appendChild(el('circle',{cx:x,cy:y,r,fill:o.id==='m1'?'#7fb3e6':'#5f8fc9',stroke:'#1B2450','stroke-width':0.8,opacity:0.95}));svg.appendChild(el('circle',{cx:x-r*0.35,cy:y-r*0.35,r:r*0.28,fill:'#ffffff',opacity:0.7}));return r;}
+function drawTarget(svg,x,yBottom,o,k,faceLeft){
+  // side view: width along travel (o.w mm), height o.h mm; putty pad on one face
+  k=(k||1)*DR; const w=o.w/10*K*k, h=o.h/10*K*k;
+  svg.appendChild(el('rect',{x,y:yBottom-h,width:w,height:h,rx:1.5,fill:o.color,stroke:'#7d838f','stroke-width':0.8}));
+  const pw=2.2*k, ph=h*0.7;
+  const pxL=faceLeft==='putty'?x-pw:x+w;
+  svg.appendChild(el('rect',{x:pxL,y:yBottom-h*0.85,width:pw,height:ph,rx:1,fill:'#9b8fc2',stroke:'#6f6596','stroke-width':0.5}));
+  return {w,h};
+}
+function render(dt){
+  const svg=document.getElementById('scene'); while(svg.firstChild)svg.removeChild(svg.firstChild);
+  T.hits=[]; const D=S.drag;
+  // shelf
+  svg.appendChild(el('rect',{x:4,y:SHELF_Y,width:300,height:4,fill:'#b89a6e'}));
+  svg.appendChild(el('rect',{x:186,y:SHELF2_Y,width:210,height:4,fill:'#b89a6e'}));
+  hit('shelf',0,8,310,84,{low:true}); hit('shelf',180,104,220,80,{low:true});
+  for(const o of S.objs){
+    if(o.loc!=='shelf'||(D&&D.o===o))continue;
+    const sy=o.home.y;
+    if(o.kind==='marble'){const r=drawMarble(svg,o.home.x,sy-mr(o),o);label(svg,o.home.x,sy+13,o.id==='m1'?'small':'shooter');hit('o:'+o.id,o.home.x-14,sy-2*r-6,28,2*r+8,{pri:true});}
+    else{const s=drawTarget(svg,o.home.x-o.w/20*K*DR,sy,o,1,'none');label(svg,o.home.x,sy+13,o.name);hit('o:'+o.id,o.home.x-Math.max(14,s.w/2),sy-s.h-8,Math.max(28,s.w),s.h+10,{pri:true});}
+  }
+  // scale
+  const sc=SCALE;
+  svg.appendChild(el('rect',{x:sc.cx-38,y:sc.top,width:76,height:6,rx:2,fill:'#c9cfdd',stroke:'#6d7488'}));
+  svg.appendChild(el('rect',{x:sc.cx-41,y:sc.top+6,width:82,height:20,rx:4,fill:'#9aa3b8'}));
+  svg.appendChild(el('rect',{x:sc.cx-37,y:sc.top+9,width:44,height:14,rx:2,fill:'#DDE6D5'}));
+  svg.appendChild(el('text',{x:sc.cx+4,y:sc.top+20,'font-size':10,'font-family':'Courier New, monospace','font-weight':'bold',fill:'#1a2a1a','text-anchor':'end'},scaleReading(dt)));
+  svg.appendChild(el('rect',{x:sc.cx+11,y:sc.top+10,width:24,height:12,rx:3,fill:'#e2e6ef'}));
+  svg.appendChild(el('text',{x:sc.cx+23,y:sc.top+18.5,'font-size':6,fill:'#1B2450','text-anchor':'middle','font-weight':'bold'},'ZERO'));
+  hit('zero',sc.cx+9,sc.top+8,28,18,{pri:true}); hit('scaleZone',sc.cx-44,sc.top-50,88,56,{low:true});
+  label(svg,sc.cx,sc.top+36,'scale');
+  for(const o of S.objs){if(o.loc!=='scale'||(D&&D.o===o))continue;
+    if(o.kind==='marble'){const r=drawMarble(svg,sc.cx,sc.top-mr(o),o);hit('o:'+o.id,sc.cx-14,sc.top-2*r-6,28,2*r+8,{pri:true});}
+    else{const s=drawTarget(svg,sc.cx-o.w/20*K*DR,sc.top,o,1,o.face==='putty'?'putty':'bare');hit('o:'+o.id,sc.cx-Math.max(14,s.w/2),sc.top-s.h-6,Math.max(28,s.w),s.h+8,{pri:true});
+      drawStuck(svg,o,sc.cx-s.w/2,sc.top,s);}}
+  // table, books, ramp
+  svg.appendChild(el('rect',{x:0,y:TABLE_Y,width:400,height:10,fill:'#c9a97a'}));
+  label(svg,380,TABLE_Y+22,'table');
+  const topX=rampX(RAMP_TOP_H), topY=rampY(RAMP_TOP_H);
+  for(let i=0;i*10<RAMP_TOP_H*K-4;i++){const by=TABLE_Y-(i+1)*10;if(by<topY+2)break;svg.appendChild(el('rect',{x:topX-12,y:by,width:26,height:9.4,fill:['#8C1D40','#1B2450','#1DB793','#747474'][i%4],stroke:'#fff','stroke-width':0.6}));}
+  label(svg,topX,TABLE_Y+22,'books');
+  svg.appendChild(el('line',{x1:topX,y1:topY,x2:RAMP_FOOT,y2:TABLE_Y,stroke:'#5c6477','stroke-width':4,'stroke-linecap':'round'}));
+  svg.appendChild(el('line',{x1:topX,y1:topY-2,x2:RAMP_FOOT,y2:TABLE_Y-2,stroke:'#9aa3b8','stroke-width':1.2}));
+  label(svg,(topX+RAMP_FOOT)/2+16,(topY+TABLE_Y)/2+8,'ramp, V channel','start');
+  hit('rampZone',topX-10,topY-20,RAMP_FOOT-topX+20,TABLE_Y-topY+20,{low:true});
+  // release marker and the vertical ruler held at it
+  const mx=rampX(S.marker), my=rampY(S.marker);
+  svg.appendChild(el('rect',{x:mx-10,y:TABLE_Y-S.marker*K-1,width:4,height:S.marker*K+1,fill:'#fff6c9',stroke:'#b9a55a','stroke-width':0.5,opacity:0.9}));
+  for(let c=0;c<=S.marker+2&&c<=RAMP_TOP_H;c+=5){const yy=TABLE_Y-c*K;if(yy<my-6)break;svg.appendChild(el('line',{x1:mx-10,y1:yy,x2:mx-7,y2:yy,stroke:'#191919','stroke-width':0.5}));}
+  svg.appendChild(el('path',{d:`M${mx-5},${my-7} L${mx+9},${my+3} L${mx+6},${my+8} L${mx-8},${my-2} Z`,fill:'#f7d76b',stroke:'#a8892a','stroke-width':0.8}));
+  hit('marker',mx-14,my-14,30,28,{pri:true});
+  // tape line and ruler
+  svg.appendChild(el('rect',{x:TAPE_X-1.2,y:TABLE_Y-2,width:2.4,height:4,fill:'#e9d48b'}));
+  label(svg,TAPE_X,TABLE_Y+22,'tape line');
+  svg.appendChild(el('rect',{x:TAPE_X,y:TABLE_Y+1,width:xOfMm(RULER_MM)-TAPE_X,height:6,fill:'#fff6c9',stroke:'#b9a55a','stroke-width':0.5}));
+  for(let mm=0;mm<=RULER_MM;mm+=10){svg.appendChild(el('line',{x1:xOfMm(mm),y1:TABLE_Y+1,x2:xOfMm(mm),y2:TABLE_Y+(mm%50===0?6:3.5),stroke:'#191919','stroke-width':0.5}));}
+  label(svg,xOfMm(150),TABLE_Y+30,'ruler, laid along the table');
+  hit('tableZone',RAMP_FOOT+12,TABLE_Y-70,400-RAMP_FOOT-12,80,{low:true});
+  // target on the table
+  const t=onTable();
+  if(t&&!(D&&D.o===t)){
+    const x0=xOfMm(t.pos+t.place);
+    const s=drawTarget(svg,x0,TABLE_Y,t,1,t.face==='putty'?'putty':'bare');
+    drawStuck(svg,t,x0,TABLE_Y,s);
+    hit('o:'+t.id,x0-2,TABLE_Y-s.h-10,Math.max(30,s.w+4),s.h+14,{pri:true});
+  }
+  // marbles elsewhere
+  for(const o of S.objs){
+    if(o.kind!=='marble'||(D&&D.o===o))continue;
+    if(o.loc==='run'){drawMarble(svg,o.x,o.y,o);}
+    else if(o.loc==='ramp-foot'){const x=o.x??RAMP_FOOT+10,y=TABLE_Y-mr(o);drawMarble(svg,x,y,o);hit('o:'+o.id,x-13,y-13,26,26,{pri:true});}
+    else if(o.loc==='beside'){const x=o.x,y=TABLE_Y+4;drawMarble(svg,x,y,o);hit('o:'+o.id,x-13,y-13,26,26,{pri:true});}
+    else if(o.loc==='floor'){const x=388,y=TABLE_Y+30;drawMarble(svg,x,y,o);label(svg,x-2,y+14,'floor');hit('o:'+o.id,x-13,y-13,26,26,{pri:true});}
+  }
+  // dragged
+  if(D&&D.o){
+    const o=D.o;
+    if(o.kind==='marble')drawMarble(svg,D.px,D.py,o);
+    else{const s=drawTarget(svg,D.px-o.w/20*K*DR,D.py+6,o,1,o.face==='putty'?'putty':'bare');drawStuck(svg,o,D.px-s.w/2,D.py+6,s);}
+  }
+}
+function drawStuck(svg,t,x0,yb,s){
+  for(const o of S.objs){if(o.loc==='stuck'&&o.in===t.id&&!(S.drag&&S.drag.o===o)){
+    const r=mr(o), x=t.face==='putty'?x0-2.2*DR-r*0.6:x0+s.w+2.2*DR+r*0.6; drawMarble(svg,x,yb-r,o);
+    if(!S.run||S.run.m!==o){const hx0=t.face==='putty'?x-r-8:x0+s.w-1, hx1=t.face==='putty'?x0+1:x+r+8;hit('o:'+o.id,hx0,yb-2*r-8,hx1-hx0,2*r+12,{pri:true,top:true});}}}
+}
+
+/* ===================== Reading window ===================== */
+function renderRead(){
+  const w=document.getElementById('readwin');
+  if(!S.look){w.classList.remove('on');return;} w.classList.add('on');
+  const svg=document.getElementById('readSvg'); while(svg.firstChild)svg.removeChild(svg.firstChild);
+  if(S.look==='height'){
+    document.getElementById('readTitle').textContent='Ruler held at the tape marker';
+    document.getElementById('eyeNote').textContent='Centered is level with the marker. Up moves your eye above it, down below it.';
+    const PXc=28, mid=110, ap=S.marker+0.25*S.eye, y=c=>mid-(c-ap)*PXc;
+    svg.appendChild(el('rect',{x:30,y:0,width:56,height:220,fill:'#fff6c9'}));
+    for(let mm=Math.floor((ap-4.5)*10);mm<=Math.ceil((ap+4.5)*10);mm++){if(mm<0||mm%10!==0)continue;const c=mm/10,yy=y(c);if(yy<0||yy>220)continue;
+      svg.appendChild(el('line',{x1:30,y1:yy,x2:56,y2:yy,stroke:'#191919','stroke-width':1.4}));
+      svg.appendChild(el('text',{x:84,y:yy+4,'font-size':11,'font-weight':'bold',fill:'#191919','text-anchor':'end'},String(c)));
+      if(c%5===0)svg.appendChild(el('line',{x1:30,y1:yy,x2:64,y2:yy,stroke:'#191919','stroke-width':1.6}));}
+    svg.appendChild(el('path',{d:`M90,${mid-6} L156,${mid-6} L156,${mid+6} L90,${mid+6} Z`,fill:'#f7d76b',stroke:'#a8892a'}));
+    svg.appendChild(el('text',{x:123,y:mid+22,'font-size':9,fill:'#747474','text-anchor':'middle'},'tape marker'));
+    svg.appendChild(el('text',{x:58,y:214,'font-size':9,fill:'#747474','text-anchor':'middle'},'cm above the table'));
+    document.getElementById('readStatus').textContent='The marked edge of the tape against a ruler standing on the table, marked in centimeters.';
+    return;
+  }
+  const t=obj(S.look); if(!t||t.loc!=='table'){S.look=null;return;}
+  document.getElementById('readTitle').textContent='Ruler at the '+t.name+', from above';
+  document.getElementById('eyeNote').textContent='Centered is straight above the edge. Left and right lean your view.';
+  const PX=8, mid=80, edge=t.pos+t.place, ap=edge+0.3*S.eye, x=mm=>mid+(mm-ap)*PX;
+  svg.appendChild(el('rect',{x:0,y:150,width:160,height:46,fill:'#fff6c9',stroke:'#b9a55a'}));
+  for(let mm=Math.floor(ap-12);mm<=Math.ceil(ap+12);mm++){if(mm<0||mm>RULER_MM)continue;const xx=x(mm);
+    const len=mm%10===0?22:(mm%5===0?15:9); svg.appendChild(el('line',{x1:xx,y1:150,x2:xx,y2:150+len,stroke:'#191919','stroke-width':mm%10===0?1.4:0.8}));
+    if(mm%10===0)svg.appendChild(el('text',{x:xx,y:188,'font-size':10,'font-weight':'bold',fill:'#191919','text-anchor':'middle'},String(mm)));}
+  // target outline from above: its back edge sits at "edge", the block extends away from the ramp
+  const deg=t.deg, wpx=t.w*PX, dpx=40*PX;
+  const g=el('g',{transform:`rotate(${deg} ${x(edge+0.3*S.eye)} 150)`});
+  g.appendChild(el('rect',{x:x(edge+0.3*S.eye)-0,y:150-dpx/2,width:wpx,height:dpx/2+2,fill:t.color,stroke:'#7d838f','stroke-width':1.2,opacity:0.92}));
+  svg.appendChild(g);
+  svg.appendChild(el('text',{x:80,y:212,'font-size':9,fill:'#747474','text-anchor':'middle'},'mm from the tape line'));
+  document.getElementById('readStatus').textContent='Looking down at the edge of the target nearest the ramp, with the ruler beside it.';
+}
+
+/* ===================== Pointer ===================== */
+function pt(svg,e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(svg.getScreenCTM().inverse());return {x:q.x,y:q.y};}
+const rank=h=>h.top?3:(h.pri?2:(h.low?0:1));
+function findHit(x,y,f){let b=null;for(const h of T.hits){if(f&&!f(h))continue;if(x>=h.x&&x<=h.x+h.w&&y>=h.y&&y<=h.y+h.h){if(!b||rank(h)>rank(b))b=h;}}return b;}
+function zoneAt(x,y){const h=findHit(x,y,h=>/Zone$|^shelf$/.test(h.id));return h?h.id.replace(/Zone$/,''):null;}
+function flash(m){const e=document.getElementById('status');e.textContent=m;e.classList.remove('flash');void e.offsetWidth;e.classList.add('flash');}
+function wire(){
+  const svg=document.getElementById('scene');
+  svg.addEventListener('pointerdown',e=>{
+    e.preventDefault(); if(S.run)return; const p=pt(svg,e); const h=findHit(p.x,p.y); if(!h)return;
+    svg.setPointerCapture(e.pointerId); document.body.classList.add('dragging');
+    const d={id:h.id,px:p.x,py:p.y,sx:p.x,sy:p.y,moved:false};
+    if(h.id.startsWith('o:'))d.o=obj(h.id.slice(2)); else if(h.id==='marker')d.marker=true;
+    S.drag=d;
+  });
+  svg.addEventListener('pointermove',e=>{const d=S.drag;if(!d)return;const p=pt(svg,e);if(Math.hypot(p.x-d.sx,p.y-d.sy)>4)d.moved=true;d.px=p.x;d.py=p.y;
+    if(d.marker&&d.moved){const h=(TABLE_Y-p.y)/K;S.marker=Math.max(5,Math.min(60,h));}});
+  const finish=e=>{
+    const d=S.drag; if(!d)return; S.drag=null; document.body.classList.remove('dragging');
+    const p=pt(svg,e); const z=zoneAt(p.x,p.y);
+    if(!d.moved){
+      if(d.id==='zero'){S.zero=trueLoad();S.disp=0;return;}
+      if(d.marker){S.look='height';return;}
+      const o=d.o; if(!o)return;
+      if(o.kind==='target'&&o.loc==='table'){
+        if(!o.slid){o.face=o.face==='putty'?'bare':'putty';flash(o.face==='putty'?'Turned around: the putty face points at the ramp.':'Turned around: the bare face points at the ramp.');}
+        else S.look=o.id;
+      }
+      return;
+    }
+    if(d.marker)return;
+    const o=d.o; if(!o)return;
+    if(z==='scale'){if(S.objs.some(x=>x.loc==='scale')){flash('Take the other item off the scale first.');return;}
+      if(o.loc==='stuck'){o.in=null;} o.loc='scale'; return;}
+    if(z==='shelf'){if(o.loc==='stuck')o.in=null; if(o.loc==='table'&&S.look===o.id)S.look=null; o.loc='shelf'; if(o.kind==='target'){o.pos=0;o.deg=0;o.slid=false;} return;}
+    if(o.kind==='target'&&z==='table'){
+      const cur=onTable(); if(cur&&cur!==o){flash('The '+cur.name+' is already on the table.');return;}
+      const r=trialRng(); o.loc='table'; o.pos=0; o.deg=0; o.slid=false; o.place=Math.round((r()*2-1)*C.PLACE_MM*10)/10; if(S.look===o.id)S.look=null;
+      return;
+    }
+    if(o.kind==='marble'&&z==='ramp'){if(o.loc==='stuck')o.in=null; release(o); return;}
+    if(o.kind==='marble'&&z==='table'){if(o.loc==='stuck')o.in=null; o.loc='ramp-foot'; o.x=Math.min(p.x,RAMP_FOOT+40); return;}
+  };
+  svg.addEventListener('pointerup',finish); svg.addEventListener('pointercancel',finish);
+}
+
+/* ===================== Boot ===================== */
+let lastF=performance.now();
+function loop(n){const dt=Math.min(0.1,(n-lastF)/1000);lastF=n;stepRun();render(dt);renderRead();requestAnimationFrame(loop);}
+document.getElementById('startBtn').addEventListener('click',()=>{
+  const nm=document.getElementById('nm').value.trim(), dt=document.getElementById('dt').value;
+  if(!nm||!dt){document.getElementById('gateStatus').textContent='Enter your name and the date to open the bench.';return;}
+  seedHash=E.fnv(nm.toLowerCase()+'|'+dt); seedCode=(seedHash.toString(36).toUpperCase()+'000000').slice(0,6); trial=0;
+  BP=E.benchParams(seedHash); initObjects();
+  document.getElementById('gate').hidden=true; document.getElementById('bench').hidden=false;
+  const chip=document.getElementById('seedchip'); chip.hidden=false; chip.textContent=seedString();
+  wire(); requestAnimationFrame(loop);
+});
+document.getElementById('resetBtn').addEventListener('click',()=>{
+  if(S.run)return; const keep=S.objs.map(o=>({id:o.id,mass:o.mass}));
+  initObjects(); S.objs.forEach(o=>{o.mass=keep.find(k=>k.id===o.id).mass;}); S.marker=35; S.look=null;
+  flash('Everything is back on the shelf and the tape marker is back at its starting spot. The scale keeps its own zero.');
+});
+document.getElementById('eye').addEventListener('input',e=>{S.eye=parseFloat(e.target.value);});
+document.getElementById('readClose').addEventListener('click',()=>{S.look=null;});
+(function(){const d=new Date();document.getElementById('dt').value=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);})();
+})();
+</script>
+</body>
+</html>
