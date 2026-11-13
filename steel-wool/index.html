@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>What Left and What Arrived: Virtual Lab Bench</title>
+<style>
+  :root{
+    --navy:#1B2450; --teal:#1DB793; --white:#FFFFFF;
+    --g1:#191919; --gray:#747474; --g5:#D0D0D0; --g6:#E8E8E8; --g7:#FAFAFA;
+    --water:#2E6FD8; --waterdeep:#1F4FA8;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; background:var(--g6); color:var(--navy); font-family:Arial, Helvetica, sans-serif; font-size:16px; line-height:1.45;}
+  .wrap{max-width:560px; margin:0 auto; padding:12px 12px 90px 12px;}
+  header.bench{background:var(--navy); color:var(--white); border-radius:10px; padding:14px 16px; margin-bottom:12px;}
+  .badge{display:inline-block; background:var(--teal); color:var(--white); font-weight:bold; font-size:11px; letter-spacing:2px; padding:3px 10px; border-radius:12px; margin-bottom:8px;}
+  header.bench h1{margin:0 0 6px 0; font-size:22px; line-height:1.2;}
+  header.bench p{margin:0; font-size:13px; color:#cdd3ea;}
+  #seedchip{position:fixed; top:8px; right:8px; z-index:50; background:var(--navy); color:var(--white); font-size:12px; font-weight:bold; letter-spacing:1px; padding:6px 10px; border-radius:8px; border:2px solid var(--teal); font-family:"Courier New", monospace;}
+  .card{background:var(--white); border:1px solid var(--g5); border-radius:10px; padding:14px; margin-bottom:12px;}
+  .card h2{margin:0 0 8px 0; font-size:16px; color:var(--navy); border-bottom:2px solid var(--teal); padding-bottom:5px;}
+  .muted{color:var(--gray); font-size:13px;}
+  p{margin:6px 0;}
+  button{font-family:Arial, Helvetica, sans-serif; font-size:15px; border:none; border-radius:8px; padding:11px 14px; margin:4px 4px 4px 0; cursor:pointer; background:var(--navy); color:var(--white); touch-action:manipulation; user-select:none; -webkit-user-select:none;}
+  button.teal{background:var(--teal);}
+  button.ghost{background:var(--g7); color:var(--navy); border:1px solid var(--g5);}
+  button.warn{background:#8C1D40; color:var(--white);}
+  input[type=text], input[type=date], textarea{width:100%; font-size:16px; padding:10px; border:1px solid var(--g5); border-radius:8px; font-family:Arial, Helvetica, sans-serif; margin-bottom:8px;}
+  textarea{font-family:"Courier New", monospace; font-size:12px; height:70px; word-break:break-all;}
+  label{font-size:14px; display:block; margin-top:6px;}
+  .row{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+  .instr{display:flex; gap:10px; flex-wrap:wrap; align-items:flex-start;}
+  .lcd{background:#DDE6D5; color:#1a2a1a; font-family:"Courier New", monospace; font-size:30px; font-weight:bold; letter-spacing:2px; padding:8px 12px; border-radius:6px; border:3px solid #556; min-width:150px; text-align:right;}
+  .pkg{display:flex; gap:10px; align-items:center; border:1px solid var(--g5); border-radius:8px; padding:8px; margin-bottom:8px; background:var(--g7); cursor:pointer;}
+  .pkg.on{border:2px solid var(--teal);}
+  .pkg .lab{flex:1; font-size:13px;}
+  .pkg .lab b{display:block; font-size:14px;}
+  svg.scene{width:100%; height:auto; display:block; background:var(--g7); border:1px solid var(--g5); border-radius:8px; touch-action:none; user-select:none; -webkit-user-select:none;}
+  .status{font-size:13px; color:var(--gray); margin-top:6px; min-height:18px;}
+  .flash{animation:flash 0.5s;}
+  @keyframes flash{0%{background:#d8f5ec;}100%{background:var(--white);}}
+  .gate{margin-top:20px;}
+  .legend{font-size:13px; color:var(--gray); margin-top:8px;}
+  .next{font-size:13px; color:var(--navy); background:var(--g7); border-left:4px solid var(--teal); padding:8px 10px; margin-top:10px; border-radius:0 8px 8px 0;}
+  .clockline{font-size:14px; margin:4px 0;}
+  .clockline b{font-family:"Courier New", monospace;}
+  #lookCard{display:none;} #lookCard.on{display:block;}
+  body.dragging{user-select:none; -webkit-user-select:none;}
+  @media (min-width: 900px){
+    .wrap{max-width:1180px; padding:16px 20px 60px 20px;}
+    header.bench p{max-width:860px;}
+    #gate, #resume{max-width:620px;}
+    #pkgs{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px;}
+    #pkgs .pkg{margin-bottom:0;}
+    #bench:not([hidden]){display:grid; grid-template-columns:minmax(0,2fr) minmax(300px,1fr); gap:12px; align-items:start;}
+    #bench > *{grid-column:2; margin:0;}
+    #bench > #sceneCard{grid-column:1; grid-row:1 / span 8;}
+  }
+</style>
+</head>
+<body>
+<div id="seedchip" hidden>WA-000000-00</div>
+<div class="wrap">
+
+<header class="bench">
+  <span class="badge">CHEMISTRY</span>
+  <h1>What Left and What Arrived<br>Virtual Lab Bench</h1>
+  <p>This bench is for students who could not get hold of the materials. If you can run the real lab, do that instead. The real version is the better experience and the one we prefer. Keep your lab document open next to this page and record every reading there, exactly as you would at a real bench. Nothing here is checked, corrected, or scored.</p>
+</header>
+
+<div id="gate" class="card gate">
+  <h2>Start your session</h2>
+  <p class="muted">Your name and today's date set up your bench. The code at the top right of the screen belongs to your session. Include a screenshot that shows it in your lab report where the name and date photos would otherwise go.</p>
+  <label for="nm">Your name</label>
+  <input type="text" id="nm" placeholder="Last, First" autocomplete="off">
+  <label for="dt">Today's date</label>
+  <input type="date" id="dt">
+  <button class="teal" id="startBtn">Open the bench</button>
+  <div id="resume" hidden>
+    <p class="muted" style="margin-top:14px">This browser already has a bench in progress.</p>
+    <p id="resumeWho" style="font-weight:bold"></p>
+    <button class="teal" id="resumeBtn">Go back to that bench</button>
+  </div>
+  <label for="codeIn" style="margin-top:14px">Coming back on a different device? Paste your recovery code.</label>
+  <textarea id="codeIn" autocomplete="off" spellcheck="false"></textarea>
+  <button class="ghost" id="codeBtn">Load my bench</button>
+  <div class="status" id="gateStatus"></div>
+</div>
+
+<div id="bench" hidden>
+  <div class="card" id="sceneCard">
+    <h2>The bench</h2>
+    <svg class="scene" id="scene" viewBox="0 0 400 446"></svg>
+    <p class="legend">Drag from the steel wool to the scale or a plate to pull off a piece. Tap a piece on the scale to tear a little back off; drag a piece back to the steel wool to put it away. Tap a sample on a plate to fluff it or press it together before it gets wet, and to look at it closely. Drag a sample into the vinegar and hold it there to dip it, onto the paper towel to blot it, and over the sink and hold to shake it. Drag the teaspoon from the saltwater onto a sample to add a level teaspoon. Drag the spray bottle over a sample and hold to wet it. Drag a sample into the jar, and tap the lid to close or open it. Drag samples onto the foil squares, drag the tray by its handle into the oven and back out, and tap the knob to turn the oven on or off. Tap a foil square to tip its loose bits onto the scale. Tap the scale's zero pad to zero it, or its platform to wake it.</p>
+    <div class="status" id="status"></div>
+    <button class="ghost" id="resetBtn">Start the bench over</button>
+    <div class="next">Your lab document has the steps for each day. This page keeps your samples on this device between visits, and the eight days run on the real calendar, so come back each day the same way you would check real plates. If you might switch devices or browsers, copy your recovery code from the Bench clock card first.</div>
+  </div>
+
+  <div class="card">
+    <h2>Your scale</h2>
+    <p class="muted">Two scales are on the shelf. Pick the one you are using and record its resolution in your Setup Record. You can switch at any time.</p>
+    <div id="pkgs"></div>
+  </div>
+
+  <div class="card" id="lookCard">
+    <h2 id="lookTitle">Looking closely</h2>
+    <p id="lookText"></p>
+    <button class="ghost" id="lookClose">Put it down</button>
+  </div>
+
+  <div class="card">
+    <h2>Bench clock</h2>
+    <div class="clockline" id="clockStart"></div>
+    <div class="clockline" id="clockNow"></div>
+    <div class="clockline" id="clockElapsed"></div>
+    <button class="ghost" id="codeShow">Show my recovery code</button>
+    <textarea id="codeOut" readonly hidden></textarea>
+  </div>
+
+  <div class="card">
+    <h2>Stopwatch</h2>
+    <div class="instr">
+      <div class="lcd" id="swLcd">00:00</div>
+      <div class="row">
+        <button id="swStart">Start</button>
+        <button id="swStop">Stop</button>
+        <button class="ghost" id="swReset">Reset</button>
+      </div>
+    </div>
+    <p class="muted">For timing the dip, the oven, and the cooling. Minutes and seconds.</p>
+  </div>
+</div>
+</div>
+
+<script>
+/*ENGINE_START*/
+// What Arrived bench engine. Spec v3: open legs class_fit, sealed leg assumes the pad is dry after shake and oven.
+const ENGINE = (() => {
+  const HOUR = 3600e3, DAY = 24 * HOUR, MIN = 60e3;
+  const C = {
+    R_OPEN_MED: 0.36,        // per-gram open gain over a full protocol, class_fit (clean reports, Nov 2026)
+    R_STUDENT_SD: 0.30,      // lognormal spread between benches, class_fit
+    R_SAMPLE_SD: 0.10,       // lognormal spread within a bench, class_fit
+    R_CEIL: 0.62,            // FeO(OH) 0.59 g O+H per g Fe plus acetate, calculated
+    TAU_RUST_D: 2.5,         // rusting time constant while damp, estimated
+    FULL_DAMP_D: 7.2,        // damp days under the full protocol (normalizes R_OPEN_MED)
+    DAMP_FRAC: 0.05,         // liquid per gram above which a pad counts as damp
+    EVAP_TAU_D: 0.4,         // open-air evaporation time constant for liquid on a pad, estimated
+    VINEGAR_PER_G: 1.4,      // g vinegar held per g after a full dip, estimated
+    BLOT_KEEP: 0.6,          // fraction of held liquid left after one blot, estimated
+    TSP_G: 4.9,              // g per level teaspoon of saltwater
+    LIQ_CAP_PER_G: 1.6,      // most liquid a pad holds; the rest pools on the plate
+    SALT_FULL: 0.37,         // g salt left by full evaporation of 1 tsp, calculated (18 g / 240 mL x 4.9 mL)
+    SALT_RET_WET: [0.55, 0.8], SALT_RET_DRY: [0.9, 1.0], // after a full shake (3+ flicks), estimated
+    SHAKE_KEEP: 0.62,        // fraction of liquid left per flick, estimated
+    O2_CAP: 0.11,            // g O2 per sealed interval, 400 mL headspace x 21% x 1.31 g/L, calculated
+    O2_TAU_D: 1.0,
+    ACETATE_PER_G: [0.01, 0.04], // g per g over 7 sealed days, acid corrosion without O2, estimated
+    FRAG_FRAC: [0.02, 0.07], // share of the gain that flakes off onto the foil when a dried pad is lifted, estimated
+    OVEN_WARMUP_MIN: 4, OVEN_TAU_MIN: 3.0, // drying in a 170 F oven, estimated (dry-sealed assumption)
+    WARM_TAU_MIN: 3, COOL_TAU_MIN: 7
+  };
+
+  function fnv(str){let h=0x811c9dc5;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,0x01000193)>>>0;}return h>>>0;}
+  function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+  function gauss(r){let u=0,v=0;while(u===0)u=r();while(v===0)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+  const lerp=(a,r)=>a[0]+r*(a[1]-a[0]);
+
+  function benchParams(seedHash){
+    const r=mulberry32((seedHash^0xA5A5A5A5)>>>0);
+    return { studentR: C.R_OPEN_MED*Math.exp(C.R_STUDENT_SD*gauss(r)), acetate: lerp(C.ACETATE_PER_G,r()),
+             cal: 1+0.004*gauss(r), off: 0.05*gauss(r) };
+  }
+  function sampleParams(seedHash, id, bp){
+    const r=mulberry32((seedHash^Math.imul(id+7,2654435761))>>>0);
+    return { rFinal: Math.min(C.R_CEIL, bp.studentR*Math.exp(C.R_SAMPLE_SD*gauss(r))),
+             retWet: lerp(C.SALT_RET_WET,r()), retDry: lerp(C.SALT_RET_DRY,r()),
+             frag: lerp(C.FRAG_FRAC,r()), phase: r()*6.28 };
+  }
+
+  // Replays a sample's history. sm: {m0, fluffed, ev:[{t,k,...}], ovenMin, ovenFirstT, outT, bitsOff}
+  // Returns the true state at time `now`.
+  function simulate(sm, bp, sp, now){
+    const m0=sm.m0, ev=sm.ev.slice().sort((a,b)=>a.t-b.t);
+    const freeze = sm.ovenFirstT!=null ? Math.min(now, sm.ovenFirstT) : now;
+    let L=0, G=0, Gs=0, ac=0, tsp=0, sealed=false, o2=0, sealT=null, ret=1, dipSec=0, blots=0, shook=0, t=null;
+    let dampMs=0, wetStart=null, sealedMs=0;
+    const quality = () => (sm.fluffed?1:0.8)*(0.6+0.4*Math.min(1,dipSec/60));
+    const Gmax = () => sp.rFinal*m0*quality()/(1-Math.exp(-C.FULL_DAMP_D/C.TAU_RUST_D));
+    function advance(t1){
+      if(t==null||t1<=t){t=Math.max(t??t1,t1);return;}
+      const dt=(t1-t)/DAY;
+      if(sealed){
+        const used=o2*(1-Math.exp(-dt/C.O2_TAU_D)); o2-=used; Gs+=used;
+        const sd=Math.min(dt, Math.max(0,7-sealedMs/DAY)); ac+=bp.acetate*m0*sd/7; sealedMs+=dt*DAY;
+      } else if(L>0){
+        const thr=C.DAMP_FRAC*m0;
+        const dd = L>thr ? Math.min(dt, C.EVAP_TAU_D*Math.log(L/thr)) : 0;
+        if(dd>0){ G+=(Gmax()-G)*(1-Math.exp(-dd/C.TAU_RUST_D)); dampMs+=dd*DAY; }
+        L*=Math.exp(-dt/C.EVAP_TAU_D);
+      }
+      t=t1;
+    }
+    for(const e of ev){
+      if(e.t>freeze) break;
+      advance(e.t);
+      const cap=C.LIQ_CAP_PER_G*m0;
+      if(e.k==='dip'){dipSec+=e.s; L=Math.min(cap, L+C.VINEGAR_PER_G*m0*Math.min(1,e.s/45));}
+      else if(e.k==='blot'){L*=C.BLOT_KEEP; blots++;}
+      else if(e.k==='salt'){tsp++; L=Math.min(cap, L+C.TSP_G); if(wetStart==null) wetStart=e.t;}
+      else if(e.k==='water'){L=Math.min(cap, L+e.g);}
+      else if(e.k==='seal'){if(!sealed){sealed=true; o2=C.O2_CAP*(e.share||1);}}
+      else if(e.k==='unseal'){sealed=false; o2=0;}
+      else if(e.k==='shake'){
+        const wet=L/m0>0.2, full=Math.min(1,e.n/3), base=wet?sp.retWet:sp.retDry;
+        ret=Math.min(ret, 1-(1-base)*full); L*=Math.pow(C.SHAKE_KEEP,Math.min(e.n,6)); shook+=e.n;
+      }
+    }
+    advance(freeze);
+    // oven and afterward
+    if(sm.ovenFirstT!=null && now>=sm.ovenFirstT){
+      const eff=Math.max(0,(sm.ovenMin||0)-C.OVEN_WARMUP_MIN);
+      L*=Math.exp(-eff/C.OVEN_TAU_MIN);
+      if(sm.outT!=null && now>sm.outT && !sm.inOven) L*=Math.exp(-(now-sm.outT)/DAY/C.EVAP_TAU_D);
+    }
+    const gain=G+Gs+ac;
+    const salt=tsp*C.SALT_FULL*ret;
+    const bits=sm.bitsOff||0;
+    return { L, G, Gs, ac, gain, salt, tsp, ret, dipSec, blots, shook, dampDays:dampMs/DAY, sealedDays:sealedMs/DAY,
+             wetStart, sealed, mass: m0+gain+salt+L-bits, dry: L<0.02*m0 };
+  }
+  return { C, HOUR, DAY, MIN, fnv, mulberry32, gauss, benchParams, sampleParams, simulate };
+})();
+
+/*ENGINE_END*/
+
+</script>
+<script>
+(function(){
+'use strict';
+const E=ENGINE, C=E.C, DAY=E.DAY, MIN=E.MIN;
+const KEY='kws-bench:what-arrived:steel_wool_eight_day';
+const now=()=>Date.now();
+
+/* ===================== State ===================== */
+let P=null;           // persisted
+let BP=null;          // bench params
+const SP={};          // per-sample params cache
+const T={drag:null, look:null, pouring:null, scaleOn:true, zero:0, disp:0, idle:0, last:0, swRun:false, swT:0, swT0:0, swBase:0, resetArm:0, hits:[]};
+
+function freshP(name,date,hash){
+  return {v:1, name, date, seedHash:hash, seedCode:(hash.toString(36).toUpperCase()+'000000').slice(0,6), trial:0,
+    scale:'kitchen', tufts:0, nextId:1, samples:[], jarSealed:false, trayIn:false, ovenOn:false, ovenOnT:null};
+}
+function sp(sm){if(!SP[sm.id])SP[sm.id]=E.sampleParams(P.seedHash,sm.id,BP);return SP[sm.id];}
+function sim(sm,t){return E.simulate(sm,BP,sp(sm),t??now());}
+function at(loc){return P.samples.find(s=>s.loc===loc);}
+function treated(sm){return sm.ev.length>0;}
+function seedString(){return 'WA-'+P.seedCode+'-'+String(P.trial).padStart(2,'0');}
+function bumpTrial(){P.trial++;document.getElementById('seedchip').textContent=seedString();}
+let saveT=0;
+function save(force){const t=now();if(!force&&t-saveT<800)return;saveT=t;try{localStorage.setItem(KEY,JSON.stringify(P));}catch(e){}}
+function load(){try{const s=localStorage.getItem(KEY);return s?JSON.parse(s):null;}catch(e){return null;}}
+function clockStart(){let t=null;for(const s of P.samples)for(const e of s.ev)if(e.k==='salt'&&(t==null||e.t<t))t=e.t;return t;}
+
+/* recovery code: JSON xor-scrambled, base64, with a checksum */
+function encode(obj){
+  const js=JSON.stringify(obj), r=E.mulberry32(0x5EED1E55); let b='';
+  for(let i=0;i<js.length;i++){b+=String.fromCharCode((js.charCodeAt(i)^Math.floor(r()*256))&0xff);}
+  const sum=E.fnv(js).toString(36);
+  return 'WA1.'+btoa(b)+'.'+sum;
+}
+function decode(code){
+  const parts=code.trim().replace(/\s+/g,'').split('.'); if(parts.length!==3||parts[0]!=='WA1') return null;
+  let b; try{b=atob(parts[1]);}catch(e){return null;}
+  const r=E.mulberry32(0x5EED1E55); let js='';
+  for(let i=0;i<b.length;i++){js+=String.fromCharCode((b.charCodeAt(i)^Math.floor(r()*256))&0xff);}
+  if(E.fnv(js).toString(36)!==parts[2]) return null;
+  try{return JSON.parse(js);}catch(e){return null;}
+}
+
+/* ===================== Physical actions ===================== */
+function addEvent(sm,k,extra){sm.ev.push(Object.assign({t:now(),k},extra||{}));save(true);}
+function tuftMass(){const r=E.mulberry32((P.seedHash^Math.imul(P.tufts+1,0x9E3779B1))>>>0);P.tufts++;return Math.round((2.2+r()*4.6)*100)/100;}
+function pieceMass(sm){const r=E.mulberry32((P.seedHash^Math.imul(P.tufts+1,0x85EBCA6B))>>>0);P.tufts++;return Math.min(sm.m0-0.3,Math.round((0.25+r()*1.3)*100)/100);}
+function newSample(loc,m){const sm={id:P.nextId++,m0:m,fluffed:false,loc,ev:[],ovenMin:0,ovenFirstT:null,outT:null,inOven:false,warm:0,warmT:now(),bitsOff:0,bitsAt:null,bitsOnScale:false};P.samples.push(sm);return sm;}
+function sealedHere(sm){return sm.loc==='jar'&&P.jarSealed;}
+function setSeal(v){
+  if(P.jarSealed===v)return; P.jarSealed=v;
+  const inJar=P.samples.filter(s=>s.loc==='jar');
+  inJar.forEach(s=>addEvent(s,v?'seal':'unseal',v?{share:1/Math.max(1,inJar.length)}:{}));
+  save(true);
+}
+function moveSample(sm,dest){
+  const from=sm.loc;
+  if(from==='jar'&&P.jarSealed) return false;
+  if(dest==='jar'&&P.jarSealed) return false;
+  if(from.startsWith('foil')&&P.trayIn) return false;
+  if(dest.startsWith('foil')&&P.trayIn) return false;
+  if(from.startsWith('foil')&&!sm.bitsMade&&sm.ovenFirstT!=null&&sim(sm).dry){
+    sm.bitsMade=true; sm.bitsOff=Math.round(sp(sm).frag*sim(sm).gain*1000)/1000; sm.bitsAt=from;
+  }
+  sm.loc=dest;
+  if(dest==='scale'){bumpTrial();}
+  if(from==='scale'&&sm.bitsOnScale){sm.bitsOnScale=false;sm.bitsOff=0;sm.bitsAt=null;} // bits go with the pad
+  save(true); return true;
+}
+function warmth(sm){
+  const t=now();
+  if(sm.inOven&&P.ovenOn){return 1-(1-sm.warm)*Math.exp(-(t-sm.warmT)/(C.WARM_TAU_MIN*MIN));}
+  return sm.warm*Math.exp(-(t-sm.warmT)/(C.COOL_TAU_MIN*MIN));
+}
+function setWarmAnchor(sm){sm.warm=warmth(sm);sm.warmT=now();}
+function trayInOut(inside){
+  if(P.trayIn===inside)return;
+  P.samples.filter(s=>s.loc.startsWith('foil')).forEach(s=>{setWarmAnchor(s);s.inOven=inside;if(!inside)s.outT=now();});
+  P.trayIn=inside; save(true);
+}
+function ovenPower(on){
+  P.samples.filter(s=>s.inOven).forEach(setWarmAnchor);
+  P.ovenOn=on; save(true);
+}
+function stepOven(){
+  const t=now();
+  if(!(P.trayIn&&P.ovenOn)){P.ovenTick=t;return;}
+  const dm=(t-(P.ovenTick||t))/MIN; P.ovenTick=t;
+  for(const s of P.samples){if(!s.inOven)continue; if(s.ovenFirstT==null)s.ovenFirstT=t; s.ovenMin+=dm;}
+  save();
+}
+
+/* ===================== Scale ===================== */
+function trueLoad(){
+  const sm=at('scale'); if(!sm) return 0;
+  const s=sim(sm);
+  let m=s.mass+(sm.bitsOnScale?sm.bitsOff:0);
+  const w=warmth(sm);
+  if(w>0.02){const ph=sp(sm).phase, tt=performance.now()/1000;
+    m-= w*0.05*sm.m0*(0.7+0.3*Math.sin(tt/1.7+ph)) + w*0.035*sm.m0*Math.sin(tt/0.83+2*ph);}
+  return m*BP.cal+BP.off*(sm?1:0);
+}
+const RES=()=>P.scale==='pocket'?0.1:1;
+function stepScale(dt){
+  const t=trueLoad();
+  if(Math.abs(t-T.last)<0.05){T.idle+=dt;}else{T.idle=0;T.last=t;}
+  if(T.scaleOn&&T.idle>120)T.scaleOn=false;
+  T.disp+=((t-T.zero)-T.disp)*Math.min(1,dt/0.35);
+}
+function scaleReading(){
+  if(!T.scaleOn) return null;
+  const res=RES(), tick=Math.floor(performance.now()/350);
+  const r=E.mulberry32((P.seedHash^tick)>>>0)();
+  const v=Math.round(T.disp/res)+((r<0.08)?1:(r<0.16?-1:0));
+  const shown=v*res;
+  return (Object.is(Math.round(shown*10)/10,-0)?0:shown).toFixed(res<1?1:0)+' g';
+}
+
+/* ===================== Narratives (handed-over observations) ===================== */
+function narrate(sm){
+  const s=sim(sm), t=now(), tw=s.wetStart, d=tw==null?0:(t-tw)/DAY;
+  const n=s.sealedDays;
+  if(!treated(sm)) return sm.fluffed?'Dry steel wool, pulled loose so the fibers are open. It springs back when pressed and smells faintly of metal.':'Dry steel wool, still fairly tight. It springs back when pressed and smells faintly of metal.';
+  if(sealedHere(sm)||n>0.5){
+    if(sealedHere(sm)) return d<3?'Drops of water cover the inside of the glass, so the pad is hard to make out. Through a clearer patch near the bottom you can see its outline on the plate. The lid is still tight.':'Some of the drops have run down the inside of the glass. The pad is still hard to see clearly through it. The lid is still tight.';
+    return 'The bench does not show how this sample looks after its time in the jar. Your class compares the jar samples during the review session, and you can take your observation notes for this sample from that discussion.';
+  }
+  if(sm.ovenFirstT!=null&&s.dry) return 'Dry. Pressed between two fingers it feels stiff, and some fibers snap instead of bending. Loose bits are left wherever it has been sitting. The vinegar smell is mostly gone.';
+  if(sm.ovenFirstT!=null) return 'Warm from the oven and still damp in the middle of the pad.';
+  if(s.tsp===0) return 'Wet with vinegar and smelling sharply of it. Tiny bubbles cling to some of the fibers.';
+  const damp=s.L>C.DAMP_FRAC*sm.m0;
+  const feel=damp?'The pad is damp to the touch.':'The pad has dried out since it was last wet.';
+  if(d<0.25) return 'The pad is wet through and smells strongly of vinegar. Tiny bubbles cling to the fibers where the saltwater went in. Pressed gently, it springs back.';
+  if(d<2) return feel+' Its surface no longer looks the way it did when you set it out, and the change is uneven across the pad. Pressed gently, it still springs back. The plate under it has marks where liquid sat.';
+  if(d<5) return feel+' The surface keeps changing from one day to the next, more in some patches than others. Pressed gently, it springs back less than it did. The vinegar smell is fainter.';
+  return feel+' Look closely at the patches that have changed most and at the fibers touching the plate. Pressed gently, some fibers bend and stay bent, and a few break off. Loose bits sit on the plate.';
+}
+function locName(loc){
+  if(loc.startsWith('plate'))return 'The sample on plate '+loc.slice(5);
+  if(loc.startsWith('foil'))return 'The sample on foil square '+loc.slice(4);
+  return {jar:'The sample in the jar',scale:'The sample on the scale'}[loc]||'The sample';
+}
+
+/* ===================== Drawing ===================== */
+const NS='http://www.w3.org/2000/svg';
+function el(n,a,txt){const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;return e;}
+function shit(sm,cx,cy,r){const hw=Math.max(r+4,15),hh=Math.max(r*0.62+4,13);hit('s:'+sm.id,cx-hw,cy-hh,2*hw,2*hh,{pri:true});}
+function hit(id,x,y,w,h,extra){T.hits.push(Object.assign({id,x,y,w,h},extra||{}));}
+const PLATE_X=[45,120,195,270,345], PLATE_Y=150;
+const FOIL_X=i=>22+i*42, FOIL_Y=372;
+const SCALE={cx:170,top:262};
+const JAR={x:12,y:206,w:84,h:96};
+const SINK={x:236,y:228,w:62,h:52};
+const OVEN={x:262,y:330,w:130,h:104};
+const VIN={cx:125,y:28}, SALT={cx:198,y:24}, TOWEL={x:246,y:36,w:58,h:34}, PAD={cx:42,cy:46};
+function padPath(r,seed,fluff){
+  const rr=E.mulberry32(seed); let d='';
+  const n=fluff?16:11;
+  for(let i=0;i<n;i++){const a=rr()*6.283,b=a+1.5+rr()*2.5,r1=r*(0.35+rr()*0.65),r2=r*(0.35+rr()*0.65);
+    d+=`M${(Math.cos(a)*r1).toFixed(1)},${(Math.sin(a)*r1*0.62).toFixed(1)} Q${(rr()-0.5)*r},${(rr()-0.5)*r*0.6} ${(Math.cos(b)*r2).toFixed(1)},${(Math.sin(b)*r2*0.62).toFixed(1)} `;}
+  return d;
+}
+function drawPad(svg,cx,cy,sm,k){
+  const r=(5.2*Math.cbrt(sm.m0)*(sm.fluffed?1.22:1))*(k||1);
+  const g=el('g',{transform:`translate(${cx},${cy})`});
+  g.appendChild(el('ellipse',{cx:0,cy:0,rx:r,ry:r*0.62,fill:'#c3c7cf',stroke:'#7d838f','stroke-width':0.8}));
+  g.appendChild(el('path',{d:padPath(r,(P.seedHash^sm.id*977)>>>0,sm.fluffed),fill:'none',stroke:'#6f7682','stroke-width':0.7}));
+  const s=sim(sm);
+  if(s.L>0.15*sm.m0&&!sealedHere(sm)){for(let i=0;i<3;i++)g.appendChild(el('circle',{cx:(i-1)*r*0.55,cy:r*0.62+2,r:1.6,fill:'var(--water)',opacity:0.7}));}
+  svg.appendChild(g);
+  return r;
+}
+function drawPlate(svg,cx,y,w){svg.appendChild(el('ellipse',{cx,cy:y,rx:w/2,ry:w*0.13,fill:'#ffffff',stroke:'#9aa0ab','stroke-width':1}));svg.appendChild(el('ellipse',{cx,cy:y-1,rx:w*0.36,ry:w*0.08,fill:'none',stroke:'#d6d9de','stroke-width':0.8}));}
+function label(svg,x,y,t){svg.appendChild(el('text',{x,y,'font-size':8,fill:'#747474','text-anchor':'middle'},t));}
+
+function render(){
+  const svg=document.getElementById('scene'); while(svg.firstChild)svg.removeChild(svg.firstChild);
+  T.hits=[]; const D=T.drag;
+  svg.appendChild(el('rect',{x:0,y:0,width:400,height:446,fill:'transparent'}));
+  svg.appendChild(el('line',{x1:0,y1:96,x2:400,y2:96,stroke:'#d0d0d0','stroke-width':1}));
+  svg.appendChild(el('line',{x1:0,y1:196,x2:400,y2:196,stroke:'#d0d0d0','stroke-width':1}));
+  svg.appendChild(el('line',{x1:0,y1:322,x2:400,y2:322,stroke:'#d0d0d0','stroke-width':1}));
+  // steel wool supply
+  const pg=el('g',{transform:`translate(${PAD.cx},${PAD.cy})`});
+  pg.appendChild(el('rect',{x:-30,y:-24,width:60,height:46,rx:8,fill:'#c3c7cf',stroke:'#7d838f'}));
+  pg.appendChild(el('path',{d:padPath(26,4242,true),fill:'none',stroke:'#6f7682','stroke-width':0.7}));
+  svg.appendChild(pg); label(svg,PAD.cx,86,'steel wool'); hit('supply',PAD.cx-32,PAD.cy-26,64,50);
+  // vinegar bowl
+  svg.appendChild(el('path',{d:`M${VIN.cx-30},${VIN.y+12} L${VIN.cx-18},${VIN.y+44} L${VIN.cx+18},${VIN.y+44} L${VIN.cx+30},${VIN.y+12}`,fill:'#f4f1df',stroke:'#1B2450','stroke-width':1.6}));
+  svg.appendChild(el('path',{d:`M${VIN.cx-27},${VIN.y+20} L${VIN.cx-18},${VIN.y+44} L${VIN.cx+18},${VIN.y+44} L${VIN.cx+27},${VIN.y+20} Z`,fill:'#eadfa0',opacity:0.8}));
+  label(svg,VIN.cx,86,'vinegar'); hit('vinegar',VIN.cx-34,VIN.y,68,52,{low:true});
+  // saltwater cup and teaspoon
+  svg.appendChild(el('path',{d:`M${SALT.cx-14},${SALT.y+14} L${SALT.cx-11},${SALT.y+50} L${SALT.cx+11},${SALT.y+50} L${SALT.cx+14},${SALT.y+14} Z`,fill:'#ffffff',stroke:'#1B2450','stroke-width':1.4}));
+  svg.appendChild(el('path',{d:`M${SALT.cx-13},${SALT.y+24} L${SALT.cx-11},${SALT.y+50} L${SALT.cx+11},${SALT.y+50} L${SALT.cx+13},${SALT.y+24} Z`,fill:'var(--water)',opacity:0.45}));
+  label(svg,SALT.cx,86,'saltwater');
+  if(!(D&&D.type==='spoon')){drawSpoon(svg,SALT.cx+20,SALT.y+20,0);hit('spoon',SALT.cx+12,SALT.y+2,26,46);}
+  // paper towel
+  svg.appendChild(el('rect',{x:TOWEL.x,y:TOWEL.y,width:TOWEL.w,height:TOWEL.h,fill:'#ffffff',stroke:'#b9bec8',rx:2}));
+  for(let i=1;i<4;i++)svg.appendChild(el('line',{x1:TOWEL.x+i*TOWEL.w/4,y1:TOWEL.y+3,x2:TOWEL.x+i*TOWEL.w/4,y2:TOWEL.y+TOWEL.h-3,stroke:'#eceef1'}));
+  label(svg,TOWEL.x+TOWEL.w/2,86,'paper towel'); hit('towel',TOWEL.x-4,TOWEL.y-6,TOWEL.w+8,TOWEL.h+12,{low:true});
+  // spray bottle
+  if(!(D&&D.type==='spray')){drawSpray(svg,352,74,false);hit('spray',334,16,40,64);}
+  label(svg,352,86,'water');
+  // plates
+  PLATE_X.forEach((cx,i)=>{
+    const loc='plate'+(i+1); drawPlate(svg,cx,PLATE_Y+10,66); label(svg,cx,186,'plate '+(i+1));
+    hit(loc+'Zone',cx-36,110,72,72,{low:true});
+    const sm=at(loc); if(sm&&!(D&&D.sm===sm)){const r=drawPad(svg,cx,PLATE_Y,sm);shit(sm,cx,PLATE_Y,r);}
+  });
+  // jar
+  drawJar(svg);
+  // scale
+  drawScale(svg);
+  // sink
+  svg.appendChild(el('rect',{x:SINK.x,y:SINK.y+14,width:SINK.w,height:SINK.h-14,rx:5,fill:'#dfe3ea',stroke:'#747474'}));
+  svg.appendChild(el('path',{d:`M${SINK.x+16},${SINK.y+14} L${SINK.x+16},${SINK.y+4} q0,-6 9,-6 q9,0 9,6`,fill:'none',stroke:'#747474','stroke-width':2}));
+  svg.appendChild(el('rect',{x:SINK.x+6,y:SINK.y+22,width:SINK.w-12,height:SINK.h-30,rx:3,fill:'#c9d0db'}));
+  label(svg,SINK.x+SINK.w/2,SINK.y+SINK.h+12,'sink'); hit('sink',SINK.x-4,SINK.y-6,SINK.w+8,SINK.h+10,{low:true});
+  // tray and oven
+  drawOven(svg);
+  if(!P.trayIn&&!(D&&D.type==='tray'))drawTray(svg,0,0,true);
+  // dragged object last
+  if(D){
+    if(D.type==='sample'){drawPad(svg,D.px,D.py,D.sm,1);if(T.pouring==='dip')label(svg,D.px,D.py-20,'dipping');if(T.pouring==='shake')label(svg,D.px,D.py-20,'shaking');}
+    else if(D.type==='tuft'){svg.appendChild(el('ellipse',{cx:D.px,cy:D.py,rx:10,ry:6.5,fill:'#c3c7cf',stroke:'#7d838f'}));}
+    else if(D.type==='spoon'){drawSpoon(svg,D.px,D.py,30);}
+    else if(D.type==='spray'){drawSpray(svg,D.px,D.py,!!T.pouring);}
+    else if(D.type==='tray'){drawTray(svg,D.px-D.ox,D.py-D.oy,false);}
+  }
+}
+function drawSpoon(svg,x,y,rot){
+  const g=el('g',{transform:`translate(${x},${y}) rotate(${rot})`});
+  g.appendChild(el('rect',{x:-1.5,y:-18,width:3,height:26,rx:1.5,fill:'#9aa3b8'}));
+  g.appendChild(el('ellipse',{cx:0,cy:12,rx:5.5,ry:4,fill:'#9aa3b8',stroke:'#6d7488'}));
+  svg.appendChild(g);
+}
+function drawSpray(svg,x,y,on){
+  const g=el('g',{transform:`translate(${x},${y})`});
+  g.appendChild(el('rect',{x:-9,y:-40,width:18,height:40,rx:4,fill:'#e9f1fb',stroke:'#1B2450','stroke-width':1.3}));
+  g.appendChild(el('rect',{x:-6,y:-24,width:12,height:22,fill:'var(--water)',opacity:0.35}));
+  g.appendChild(el('path',{d:'M-5,-40 L-5,-50 L9,-50 L12,-46 L5,-46 L5,-40',fill:'#9aa3b8',stroke:'#1B2450','stroke-width':1}));
+  if(on){for(let i=0;i<5;i++)g.appendChild(el('circle',{cx:16+i*3,cy:-46+i*4+(i%2)*2,r:1.3,fill:'var(--water)'}));}
+  svg.appendChild(g);
+}
+function drawJar(svg){
+  const j=JAR;
+  svg.appendChild(el('rect',{x:j.x,y:j.y+10,width:j.w,height:j.h-10,rx:10,fill:'#f4f8fb',stroke:'#7d8a99','stroke-width':1.6}));
+  drawPlate(svg,j.x+j.w/2,j.y+j.h-8,58);
+  const sm=at('jar'); const D=T.drag;
+  if(sm&&!(D&&D.sm===sm)){const r=drawPad(svg,j.x+j.w/2,j.y+j.h-18,sm,0.85);if(!P.jarSealed)shit(sm,j.x+j.w/2,j.y+j.h-18,r);else hit('look:'+sm.id,j.x+8,j.y+30,j.w-16,j.h-36);}
+  if(P.jarSealed&&sm){const s=sim(sm);const fog=s.L>0.1*sm.m0?Math.max(0.25,0.85-0.12*(s.sealedDays||0)):0.1;
+    const rr=E.mulberry32(77);for(let i=0;i<26;i++)svg.appendChild(el('circle',{cx:j.x+6+rr()*(j.w-12),cy:j.y+16+rr()*(j.h-30),r:1+rr()*1.6,fill:'#cfdbe6',opacity:fog}));}
+  // lid
+  const ly=P.jarSealed?j.y+2:j.y-12;
+  svg.appendChild(el('rect',{x:j.x+(P.jarSealed?2:10),y:ly,width:j.w-(P.jarSealed?4:0),height:10,rx:3,fill:'#9aa3b8',stroke:'#5c6477',transform:P.jarSealed?'':`rotate(-8 ${j.x+j.w/2} ${ly})`}));
+  hit('lid',j.x,j.y-16,j.w,28,{pri:true});
+  hit('jarZone',j.x,j.y+12,j.w,j.h-12,{low:true});
+  label(svg,j.x+j.w/2,j.y+j.h+12,P.jarSealed?'jar, lid closed':'jar, lid off');
+}
+function drawScale(svg){
+  const cx=SCALE.cx, top=SCALE.top;
+  svg.appendChild(el('rect',{x:cx-44,y:top,width:88,height:8,rx:2,fill:'#c9cfdd',stroke:'#6d7488'}));
+  svg.appendChild(el('rect',{x:cx-48,y:top+8,width:96,height:26,rx:4,fill:P.scale==='pocket'?'#3d4458':'#9aa3b8'}));
+  svg.appendChild(el('rect',{x:cx-44,y:top+13,width:54,height:16,rx:2,fill:T.scaleOn?'#DDE6D5':'#b9c2b2'}));
+  const rd=scaleReading();
+  svg.appendChild(el('text',{x:cx+7,y:top+25,'font-size':11,'font-family':'Courier New, monospace','font-weight':'bold',fill:'#1a2a1a','text-anchor':'end'},rd||''));
+  svg.appendChild(el('rect',{x:cx+14,y:top+14,width:28,height:14,rx:3,fill:'#e2e6ef'}));
+  svg.appendChild(el('text',{x:cx+28,y:top+24,'font-size':6.5,fill:'#1B2450','text-anchor':'middle','font-weight':'bold'},'ZERO'));
+  hit('zero',cx+12,top+11,32,20,{pri:true});
+  hit('platform',cx-46,top-4,92,14);
+  hit('scaleZone',cx-50,top-50,100,58,{low:true});
+  const sm=at('scale'); const D=T.drag;
+  if(sm&&!(D&&D.sm===sm)){const r=drawPad(svg,cx,top-r0(sm),sm);shit(sm,cx,top-r0(sm),r);
+    if(sm.bitsOnScale){for(let i=0;i<5;i++)svg.appendChild(el('circle',{cx:cx+r+3+(i%3)*3,cy:top-2-(i>2?3:0),r:1.2,fill:'#8b8f98'}));}}
+  label(svg,cx,top+46,P.scale==='pocket'?'pocket scale':'kitchen scale');
+}
+function r0(sm){return 5.2*Math.cbrt(sm.m0)*(sm.fluffed?1.22:1)*0.62;}
+function drawTray(svg,dx,dy,interactive){
+  const x0=10+dx, y0=354+dy;
+  svg.appendChild(el('rect',{x:x0,y:y0,width:226,height:46,rx:4,fill:'#b8bec9',stroke:'#6d7488'}));
+  svg.appendChild(el('rect',{x:x0-8,y:y0+14,width:10,height:18,rx:3,fill:'#6d7488'}));
+  svg.appendChild(el('rect',{x:x0+224,y:y0+14,width:10,height:18,rx:3,fill:'#6d7488'}));
+  for(let i=0;i<5;i++){
+    const fx=FOIL_X(i)+dx, fy=FOIL_Y-14+dy;
+    svg.appendChild(el('rect',{x:fx-18,y:fy,width:36,height:30,fill:'#e7e9ee',stroke:'#aab0bb'}));
+    svg.appendChild(el('path',{d:`M${fx+8},${fy} L${fx+18},${fy} L${fx+18},${fy+9} Z`,fill:'#d3d7de',stroke:'#aab0bb','stroke-width':0.6}));
+    svg.appendChild(el('text',{x:fx+13,y:fy+7,'font-size':6,fill:'#1B2450','text-anchor':'middle','font-weight':'bold'},String(i+1)));
+    const loc='foil'+(i+1);
+    const bitsHere=P.samples.find(s=>s.bitsAt===loc&&s.bitsOff>0&&!s.bitsOnScale);
+    if(bitsHere){const rr=E.mulberry32(i+11);for(let k=0;k<7;k++)svg.appendChild(el('circle',{cx:fx-12+rr()*24,cy:fy+18+rr()*9,r:1.1,fill:'#8b8f98'}));}
+    if(interactive){
+      hit(loc+'Zone',fx-20,fy-6,40,38,{low:true}); if(bitsHere) hit('bits:'+loc,fx-20,fy+14,40,18);
+      const sm=at(loc); if(sm&&!(T.drag&&T.drag.sm===sm)){const r=drawPad(svg,fx,fy+14,sm,0.62);shit(sm,fx,fy+14,r);}
+    }
+  }
+  if(interactive){hit('trayHandle',x0-12,y0+8,18,30,{pri:true});hit('trayHandle',x0+220,y0+8,18,30,{pri:true});}
+  label(svg,x0+113,y0+58,'baking tray with foil squares');
+}
+function drawOven(svg){
+  const o=OVEN;
+  svg.appendChild(el('rect',{x:o.x,y:o.y,width:o.w,height:o.h,rx:6,fill:'#e4e6ea',stroke:'#5c6477','stroke-width':1.4}));
+  svg.appendChild(el('rect',{x:o.x+10,y:o.y+26,width:o.w-20,height:o.h-36,rx:4,fill:P.ovenOn?'#3a2f2a':'#2c3140'}));
+  svg.appendChild(el('rect',{x:o.x+8,y:o.y+6,width:56,height:14,rx:2,fill:'#1a1d26'}));
+  svg.appendChild(el('text',{x:o.x+36,y:o.y+16,'font-size':8,'font-family':'Courier New, monospace','font-weight':'bold',fill:P.ovenOn?'#ffb066':'#5d6475','text-anchor':'middle'},P.ovenOn?'170 F':'OFF'));
+  svg.appendChild(el('circle',{cx:o.x+o.w-18,cy:o.y+13,r:8,fill:'#c9cfdd',stroke:'#5c6477'}));
+  svg.appendChild(el('line',{x1:o.x+o.w-18,y1:o.y+13,x2:o.x+o.w-18+(P.ovenOn?6:0),y2:o.y+13-(P.ovenOn?5:8),stroke:'#1B2450','stroke-width':2}));
+  hit('knob',o.x+o.w-30,o.y+1,26,26,{pri:true});
+  if(P.trayIn){
+    svg.appendChild(el('rect',{x:o.x+16,y:o.y+o.h-34,width:o.w-32,height:10,rx:2,fill:'#8a909c'}));
+    for(let i=0;i<5;i++){if(at('foil'+(i+1)))svg.appendChild(el('ellipse',{cx:o.x+26+i*19.5,cy:o.y+o.h-36,rx:6,ry:3.5,fill:'#9ea3ad'}));}
+    hit('trayInOven',o.x+10,o.y+26,o.w-20,o.h-36,{pri:true});
+  }
+  hit('ovenZone',o.x,o.y,o.w,o.h,{low:true});
+  label(svg,o.x+o.w/2,o.y+o.h+10,'oven');
+}
+
+/* ===================== Pointer handling ===================== */
+function pt(svg,e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(svg.getScreenCTM().inverse());return {x:q.x,y:q.y};}
+const rank=h=>h.pri?2:(h.low?0:1);
+function findHit(x,y,filter){let best=null;for(const h of T.hits){if(filter&&!filter(h))continue;if(x>=h.x&&x<=h.x+h.w&&y>=h.y&&y<=h.y+h.h){if(!best||rank(h)>rank(best))best=h;}}return best;}
+function zoneAt(x,y){const h=findHit(x,y,h=>/Zone$|^sink$|^vinegar$|^towel$|^supply$/.test(h.id)||h.id.startsWith('s:'));if(!h)return null;
+  if(h.id.startsWith('s:'))return 'sample:'+h.id.slice(2); return h.id.replace(/Zone$/,'');}
+function flash(msg){const e=document.getElementById('status');e.textContent=msg;e.classList.remove('flash');void e.offsetWidth;e.classList.add('flash');}
+function wire(){
+  const svg=document.getElementById('scene');
+  svg.addEventListener('pointerdown',e=>{
+    e.preventDefault(); const p=pt(svg,e); const h=findHit(p.x,p.y); if(!h)return;
+    svg.setPointerCapture(e.pointerId); document.body.classList.add('dragging');
+    const d={id:h.id,px:p.x,py:p.y,sx:p.x,sy:p.y,moved:false,held:0};
+    if(h.id.startsWith('s:')){d.type='sample';d.sm=P.samples.find(s=>s.id==+h.id.slice(2));}
+    else if(h.id==='supply')d.type='tuft'; else if(h.id==='spoon')d.type='spoon'; else if(h.id==='spray')d.type='spray';
+    else if(h.id==='trayHandle'){d.type='tray';d.ox=p.x;d.oy=p.y;}
+    else if(h.id==='trayInOven'){d.type='trayOut';}
+    else d.type='tap';
+    T.drag=d;
+  });
+  svg.addEventListener('pointermove',e=>{
+    const d=T.drag; if(!d)return; const p=pt(svg,e);
+    if(Math.hypot(p.x-d.sx,p.y-d.sy)>4)d.moved=true; d.px=p.x; d.py=p.y;
+    T.pouring=null;
+    if(!d.moved)return;
+    const z=zoneAt(p.x,p.y);
+    if(d.type==='sample'&&z==='vinegar')T.pouring='dip';
+    if(d.type==='sample'&&z==='sink')T.pouring='shake';
+    if(d.type==='spray'&&z&&(z.startsWith('sample:')||z.startsWith('plate')||z==='jar'))T.pouring='spray';
+  });
+  const finish=e=>{
+    const d=T.drag; if(!d)return; T.drag=null; const pour=T.pouring; T.pouring=null; document.body.classList.remove('dragging');
+    const p=pt(svg,e); const z=zoneAt(p.x,p.y);
+    if(!d.moved){tap(d);return;}
+    if(d.type==='tuft'){
+      let dest=null; if(z==='scale')dest='scale'; else if(z&&z.startsWith('plate'))dest=z;
+      else if(z&&z.startsWith('sample:')){const sm=P.samples.find(s=>s.id==+z.slice(7));if(sm&&(sm.loc==='scale'||sm.loc.startsWith('plate')))dest=sm.loc;}
+      if(!dest)return;
+      const there=at(dest);
+      if(there){if(treated(there)){flash('That sample is already wet. Add steel wool only to a dry piece.');return;} there.m0=Math.round((there.m0+tuftMass())*100)/100;}
+      else {newSample(dest,tuftMass()); if(dest==='scale')bumpTrial();}
+      save(true); return;
+    }
+    if(d.type==='spoon'){
+      const sm=z&&z.startsWith('sample:')?P.samples.find(s=>s.id==+z.slice(7)):(z?at(z):null);
+      if(sm&&!sealedHere(sm)&&!sm.inOven){addEvent(sm,'salt');flash('One level teaspoon of saltwater worked into the sample.');}
+      return;
+    }
+    if(d.type==='spray'){
+      const sm=z&&z.startsWith('sample:')?P.samples.find(s=>s.id==+z.slice(7)):(z?at(z):null);
+      if(sm&&pour==='spray'&&d.held>0.2&&!sealedHere(sm)&&!sm.inOven){addEvent(sm,'water',{g:Math.round(Math.min(12,d.held*4)*10)/10});}
+      d.held=0; return;
+    }
+    if(d.type==='tray'){if(z==='oven'){trayInOut(true);flash('Tray in the oven.');} return;}
+    if(d.type==='trayOut'){if(!(z==='oven')){trayInOut(false);flash('Tray out of the oven.');} return;}
+    if(d.type==='sample'){
+      const sm=d.sm;
+      if(pour==='dip'&&d.held>0){addEvent(sm,'dip',{s:Math.round(d.held)});flash('Dipped for about '+Math.round(d.held)+' s.');return;}
+      if(pour==='shake'&&d.held>0){const n=Math.max(1,Math.round(d.held*2));addEvent(sm,'shake',{n});flash('Shaken over the sink, '+n+(n===1?' flick.':' flicks.'));return;}
+      if(z==='towel'){addEvent(sm,'blot');flash('Blotted once on the paper towel.');return;}
+      if(z==='supply'){if(treated(sm)){flash('A wet sample cannot go back into the dry steel wool.');return;} P.samples=P.samples.filter(s=>s!==sm);save(true);return;}
+      let dest=null;
+      if(z==='scale'||z==='jar'||(z&&(z.startsWith('plate')||z.startsWith('foil'))))dest=z;
+      else if(z&&z.startsWith('sample:')){const o=P.samples.find(s=>s.id==+z.slice(7));if(o&&o!==sm&&!treated(o)&&!treated(sm)&&o.loc!=='jar'){o.m0=Math.round((o.m0+sm.m0)*100)/100;P.samples=P.samples.filter(s=>s!==sm);save(true);return;}}
+      if(!dest||dest===sm.loc)return;
+      if(at(dest)){if(!treated(at(dest))&&!treated(sm)){const o=at(dest);o.m0=Math.round((o.m0+sm.m0)*100)/100;P.samples=P.samples.filter(s=>s!==sm);save(true);}return;}
+      if(!moveSample(sm,dest))flash(P.jarSealed?'The jar lid is closed.':'The tray is in the oven.');
+    }
+  };
+  svg.addEventListener('pointerup',finish); svg.addEventListener('pointercancel',finish);
+}
+function tap(d){
+  if(d.type==='sample'){
+    const sm=d.sm;
+    if(sm.loc==='scale'&&!treated(sm)){const pc=pieceMass(sm);if(pc>0.05){sm.m0=Math.round((sm.m0-pc)*100)/100;save(true);flash('A small piece torn off and set back with the steel wool.');}return;}
+    if(sm.loc.startsWith('plate')&&!treated(sm)){sm.fluffed=!sm.fluffed;save(true);}
+    T.look=sm.id; return;
+  }
+  if(d.id.startsWith('look:')){T.look=+d.id.slice(5);return;}
+  if(d.id==='lid'){setSeal(!P.jarSealed);flash(P.jarSealed?'Lid closed tight.':'Lid off.');return;}
+  if(d.id==='zero'){if(T.scaleOn){T.zero=trueLoad();T.disp=0;T.idle=0;}return;}
+  if(d.id==='platform'){if(!T.scaleOn){T.scaleOn=true;T.zero=trueLoad();T.disp=0;}T.idle=0;return;}
+  if(d.id==='knob'){ovenPower(!P.ovenOn);return;}
+  if(d.id.startsWith('bits:')){
+    const loc=d.id.slice(5), sm=P.samples.find(s=>s.bitsAt===loc&&s.bitsOff>0&&!s.bitsOnScale);
+    if(sm&&sm.loc==='scale'){sm.bitsOnScale=true;save(true);flash('Loose bits tipped onto the scale with their sample.');}
+    else flash('The bits on that square belong with a sample that is not on the scale.');
+  }
+}
+
+/* ===================== Cards ===================== */
+function fmtDate(t){return new Date(t).toLocaleString([], {weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});}
+function renderCards(){
+  const t0=clockStart();
+  document.getElementById('clockStart').innerHTML=t0==null?'The clock starts when the first sample gets its saltwater.':'Day 0 started: <b>'+fmtDate(t0)+'</b>';
+  document.getElementById('clockNow').innerHTML='Now: <b>'+fmtDate(now())+'</b>';
+  if(t0!=null){const el_=(now()-t0)/DAY, dd=Math.floor(el_), hh=Math.floor((el_-dd)*24);
+    document.getElementById('clockElapsed').innerHTML='Elapsed: <b>'+dd+(dd===1?' day, ':' days, ')+hh+(hh===1?' hour':' hours')+'</b> (Day '+dd+')';}
+  else document.getElementById('clockElapsed').textContent='';
+  const lc=document.getElementById('lookCard');
+  const sm=T.look!=null?P.samples.find(s=>s.id===T.look):null;
+  if(sm){lc.classList.add('on');document.getElementById('lookTitle').textContent=locName(sm.loc);document.getElementById('lookText').textContent=narrate(sm);}
+  else lc.classList.remove('on');
+  const s=Math.floor(T.swT);document.getElementById('swLcd').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+  const rb=document.getElementById('resetBtn');
+  if(T.resetArm&&now()-T.resetArm<4000){rb.textContent='Tap again to erase this bench';rb.className='warn';}
+  else{T.resetArm=0;rb.textContent=t0==null?'Start the bench over':'Start the bench over (erases your eight-day run)';rb.className='ghost';}
+}
+function buildPkgs(){
+  const box=document.getElementById('pkgs'); box.innerHTML='';
+  [{k:'kitchen',n:'Kitchen scale',l:'Reads to 1 g  ·  5 kg capacity'},{k:'pocket',n:'Pocket scale',l:'Reads to 0.1 g  ·  500 g capacity'}].forEach(o=>{
+    const d=document.createElement('div'); d.className='pkg'+(P.scale===o.k?' on':''); d.dataset.key=o.k;
+    d.innerHTML=`<svg width="56" height="44" viewBox="0 0 56 44"><rect x="4" y="8" width="48" height="6" rx="2" fill="#c9cfdd" stroke="#6d7488"/><rect x="2" y="14" width="52" height="24" rx="4" fill="${o.k==='pocket'?'#3d4458':'#9aa3b8'}"/><rect x="7" y="19" width="28" height="12" rx="2" fill="#DDE6D5"/></svg><div class="lab"><b>${o.n}</b>${o.l}</div>`;
+    d.addEventListener('click',()=>{P.scale=o.k;T.zero=trueLoad();T.disp=0;save(true);buildPkgs();});
+    box.appendChild(d);
+  });
+}
+
+/* ===================== Loop and boot ===================== */
+let lastT=performance.now();
+function loop(n){
+  const dt=Math.min(0.25,(n-lastT)/1000); lastT=n;
+  const d=T.drag;
+  if(d&&T.pouring){d.held+=dt;}
+  stepOven(); stepScale(dt);
+  if(T.swRun)T.swT=T.swBase+(performance.now()-T.swT0)/1000;
+  render(); renderCards();
+  requestAnimationFrame(loop);
+}
+function boot(p){
+  P=p; BP=E.benchParams(P.seedHash); for(const k in SP)delete SP[k];
+  // warmth anchors survive reloads; oven time only counts while the page is open
+  document.getElementById('gate').hidden=true; document.getElementById('bench').hidden=false;
+  const chip=document.getElementById('seedchip'); chip.hidden=false; chip.textContent=seedString();
+  T.zero=0; T.disp=trueLoad(); T.last=T.disp;
+  buildPkgs(); save(true);
+  if(!boot.wired){wire();boot.wired=true;requestAnimationFrame(loop);}
+}
+document.getElementById('startBtn').addEventListener('click',()=>{
+  const nm=document.getElementById('nm').value.trim(), dt=document.getElementById('dt').value;
+  if(!nm||!dt){document.getElementById('gateStatus').textContent='Enter your name and the date to open the bench.';return;}
+  const prev=load();
+  if(prev&&prev.name.toLowerCase()===nm.toLowerCase()){boot(prev);return;}
+  boot(freshP(nm,dt,E.fnv(nm.toLowerCase()+'|'+dt)));
+});
+document.getElementById('resumeBtn').addEventListener('click',()=>{const prev=load();if(prev)boot(prev);});
+document.getElementById('codeBtn').addEventListener('click',()=>{
+  const obj=decode(document.getElementById('codeIn').value);
+  if(!obj||!obj.seedHash){document.getElementById('gateStatus').textContent='That code did not load. Check that you copied all of it.';return;}
+  boot(obj);
+});
+document.getElementById('codeShow').addEventListener('click',()=>{
+  const ta=document.getElementById('codeOut'); ta.hidden=false; ta.value=encode(P); ta.select();
+  try{navigator.clipboard.writeText(ta.value).then(()=>flash('Recovery code copied.'),()=>{});}catch(e){}
+});
+document.getElementById('resetBtn').addEventListener('click',()=>{
+  const t0=clockStart();
+  if(t0!=null&&!(T.resetArm&&now()-T.resetArm<4000)){T.resetArm=now();return;}
+  T.resetArm=0;
+  const keep={scale:P.scale,trial:P.trial,tufts:P.tufts,nextId:P.nextId};
+  P=Object.assign(freshP(P.name,P.date,P.seedHash),keep); T.look=null; save(true); flash('All samples cleared, the jar lid is off, and the tray is on the counter. The scale keeps its own zero.');
+});
+document.getElementById('lookClose').addEventListener('click',()=>{T.look=null;});
+document.getElementById('swStart').addEventListener('click',()=>{if(T.swRun)return;T.swRun=true;T.swBase=T.swT;T.swT0=performance.now();});
+document.getElementById('swStop').addEventListener('click',()=>{T.swRun=false;});
+document.getElementById('swReset').addEventListener('click',()=>{T.swRun=false;T.swT=0;T.swBase=0;});
+(function(){
+  const d=new Date(); const iso=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+  document.getElementById('dt').value=iso;
+  const prev=load(); if(prev){document.getElementById('resume').hidden=false;document.getElementById('resumeWho').textContent=prev.name+', bench opened '+prev.date;}
+})();
+})();
+</script>
+</body>
+</html>
